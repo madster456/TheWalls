@@ -1,0 +1,52 @@
+name: TheWalls
+version: 1.0
+main: me.NerdsWBNerds.TheWalls.TheWalls
+commands:
+   tw:
+      description: General TheWalls commands.
+      usage: /<command> help
+   map:
+      description: Get map information.
+      usage: /<command>
+   info:
+      description: Get's general information about all lobbies.
+      usage: /<info>
+      aliases: [lobby, lobbys]
+   contact:
+      description: Get plugin creater's contact info.
+      usage: /<command>
+   spec:
+      description: Spectate someone.
+      usage: /<command> <name>
+   settime:
+      description: Set amount of time remaining for wall to drop in your wall.
+      usage: /<command> <new_time>
+   setwait:
+      description: Set waiting area.
+      usage: /<command>
+   setback:
+      description: Set backup area.
+      usage: /<command>
+   add:
+      description: Add new world at your location.
+      usage: /<command>
+   alldm:
+      description: Force all worlds into deathmatch.
+      usage: /<command>
+   record:
+      description: Check people's records.
+      usage: /<command> [name]
+   top:
+      description: Get the top people in kills, wins, and deaths.
+      usage: /<command>
+      aliases: [leader, lead, leaderboard, leaderboards]
+   team:
+      description: Without message, switch to team chat, with message, send single team message.
+      usage: /<command> [message]
+   g:
+      description: Without message, switch to global chat, with message, send single global message.
+      usage: /<command> [message]
+      aliases: [global]
+   donate:
+      description: Get information on how to donate.
+      usage: /<command>
