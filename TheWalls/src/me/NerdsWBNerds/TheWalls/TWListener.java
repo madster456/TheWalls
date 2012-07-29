@@ -90,6 +90,10 @@ public class TWListener implements Listener {
 			e.getPlayer().setHealth(0);
 		else
 			plugin.removePlayer(e.getPlayer());
+		
+		if(TheWalls.noPlay.contains(e.getPlayer())){
+			TheWalls.noPlay.remove(e.getPlayer());
+		}
 	}
 	
 	@EventHandler
@@ -100,6 +104,10 @@ public class TWListener implements Listener {
 			e.getPlayer().setHealth(0);
 		else
 			plugin.removePlayer(e.getPlayer());
+		
+		if(TheWalls.noPlay.contains(e.getPlayer())){
+			TheWalls.noPlay.remove(e.getPlayer());
+		}
 	}
 
 	@EventHandler
@@ -130,6 +138,12 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void playerInteract(PlayerInteractEvent e){
+		if(TheWalls.noPlay.contains(e.getPlayer())){
+			e.setCancelled(false);
+			return;
+		}
+		
+		
 		if(!TheWalls.inGame(e.getPlayer())){
 			e.setCancelled(true);
 		}
@@ -171,6 +185,11 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void blockBreak(BlockBreakEvent e){
+		if(TheWalls.noPlay.contains(e.getPlayer())){
+			e.setCancelled(false);
+			return;
+		}
+		
 		if(e.getBlock().getType() == Material.SAND || e.getBlock().getType() == Material.GLASS){
 			e.setCancelled(true);
 			e.getPlayer().sendMessage(ChatColor.RED + "You cannot break " + e.getBlock().getType().name().toUpperCase() + ".");
@@ -196,16 +215,8 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void blockPlace(BlockPlaceEvent e){
-		if(plugin.getGame(e.getBlock().getLocation()) == null){
-			e.setCancelled(true);
-			return;
-		}
-		
-		Game game = plugin.getGame(e.getBlock().getLocation());
-		
-		if(!game.inBorder(e.getBlock())){
-			e.setCancelled(true);
-			e.getPlayer().sendMessage(ChatColor.RED + "You cannot build here.");
+		if(TheWalls.noPlay.contains(e.getPlayer())){
+			e.setCancelled(false);
 			return;
 		}
 		
@@ -215,6 +226,14 @@ public class TWListener implements Listener {
 		}
 		
 		if(TheWalls.inGame(e.getPlayer())){
+			Game game = plugin.getGame(e.getBlock().getLocation());
+			
+			if(!game.inBorder(e.getBlock())){
+				e.setCancelled(true);
+				e.getPlayer().sendMessage(ChatColor.RED + "You cannot build here.");
+				return;
+			}
+			
 			if(plugin.getGame(e.getPlayer()).inDeathmatch()){
 				e.setCancelled(true);
 				return;

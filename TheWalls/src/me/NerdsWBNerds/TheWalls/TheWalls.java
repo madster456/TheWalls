@@ -160,6 +160,8 @@ public class TheWalls extends JavaPlugin{
 				player.sendMessage(ChatColor.GREEN + "Wins: " + ChatColor.AQUA + getRecord(target, false).getWins());
 				player.sendMessage(ChatColor.GREEN + "Kills: " + ChatColor.AQUA + getRecord(target, false).getKills());
 				player.sendMessage(ChatColor.GREEN + "Deaths: " + ChatColor.AQUA + getRecord(target, false).getDeaths());
+			
+				return true;
 			}
 			
 			if(cmd.getName().equalsIgnoreCase("top")){
@@ -186,9 +188,23 @@ public class TheWalls extends JavaPlugin{
 				}
 				
 				player.sendMessage(ChatColor.GOLD + "** LEADERBOARDS **");
-				player.sendMessage(ChatColor.GREEN + "Most Wins: " + ChatColor.AQUA + mW.getName() + " with " + mW.getWins() + " win(s).");
-				player.sendMessage(ChatColor.GREEN + "Most Kills: " + ChatColor.AQUA + mK.getName() + " with " + mK.getKills() + " kill(s).");
-				player.sendMessage(ChatColor.GREEN + "Most Deaths: " + ChatColor.AQUA + mD.getName() + " with " + mD.getDeaths() + " death(s).");
+				
+				if(mW != null)
+					player.sendMessage(ChatColor.GREEN + "Most Wins: " + ChatColor.AQUA + mW.getName() + " with " + mW.getWins() + " win(s).");
+				else
+					player.sendMessage(ChatColor.GREEN + "Most Wins: " + ChatColor.AQUA + "None.");
+				
+				if(mK != null)
+					player.sendMessage(ChatColor.GREEN + "Most Kills: " + ChatColor.AQUA + mK.getName() + " with " + mK.getKills() + " kill(s).");
+				else
+					player.sendMessage(ChatColor.GREEN + "Most Kills: " + ChatColor.AQUA + "None.");
+				
+				if(mD != null)
+					player.sendMessage(ChatColor.GREEN + "Most Deaths: " + ChatColor.AQUA + mD.getName() + " with " + mD.getDeaths() + " death(s).");
+				else
+					player.sendMessage(ChatColor.GREEN + "Most Deaths: " + ChatColor.AQUA + "None.");
+				
+				return true;
 			}
 
 			if(cmd.getName().equalsIgnoreCase("g")){
@@ -248,7 +264,7 @@ public class TheWalls extends JavaPlugin{
 			
 			if(cmd.getName().equalsIgnoreCase("donate")){
 				player.sendMessage(ChatColor.GOLD + "** DONATION INFO **");
-				player.sendMessage(ChatColor.GREEN + "Go to " + ChatColor.AQUA + "http://tinyurl.com/nerdsdonate" + ChatColor.GREEN + " to donate! Donating allows me to upgrade the server and get more slots, and less lag.");
+				player.sendMessage(ChatColor.GREEN + "Go to " + ChatColor.AQUA + "www.nerdswbnerds.com/donate.php" + ChatColor.GREEN + " to donate! Donating allows me to upgrade the server and get more slots, and less lag.");
 				
 				return true;
 			}
