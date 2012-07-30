@@ -9,12 +9,14 @@ import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -64,7 +66,7 @@ public class TWListener implements Listener {
 			e.setCancelled(true);
 			e.setFormat(team + "[TEAM]" + e.getFormat());
 			
-			plugin.sendTeamChat(e.getPlayer(), e.getFormat());
+			TheWalls.sendTeamChat(e.getPlayer(), e.getFormat());
 		}else{
 			e.setCancelled(false);
 			
@@ -74,11 +76,33 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void playerJoin(PlayerJoinEvent e){
-		TheWalls.hidePlayer(e.getPlayer());
-		
-		if(!e.getPlayer().isDead() && e.getPlayer().getHealth() > 0 && e.getPlayer().isOnline()){
-			plugin.addPlayer(e.getPlayer(), false);
-			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new LoginTP(e.getPlayer(), TheWalls.getWaiting()), 20L);
+		if(e.getPlayer().hasPermission("thewalls.joinonlogin")){
+			if(TheWalls.noPlay.contains(e.getPlayer())){
+				TheWalls.noPlay.remove(e.getPlayer());
+			}
+
+			TheWalls.hidePlayer(e.getPlayer());
+			
+			if(!e.getPlayer().isDead() && e.getPlayer().getHealth() > 0 && e.getPlayer().isOnline()){
+				TheWalls.addPlayer(e.getPlayer(), false);
+				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new LoginTP(e.getPlayer(), TheWalls.getWaiting()), 20L);
+			}
+		}else{
+			if(!TheWalls.noPlay.contains(e.getPlayer()))
+				TheWalls.noPlay.add(e.getPlayer());
+		}
+	}
+
+	@EventHandler
+	public void playerRespawn(PlayerRespawnEvent e){
+		e.setRespawnLocation(TheWalls.getWaiting());
+
+		if(e.getPlayer().hasPermission("thewalls.joinonrespawn")){
+			TheWalls.hidePlayer(e.getPlayer());
+			
+			if(!e.getPlayer().isDead() && e.getPlayer().getHealth() > 0 && e.getPlayer().isOnline()){
+				TheWalls.addPlayer(e.getPlayer());
+			}
 		}
 	}
 	
@@ -89,7 +113,7 @@ public class TWListener implements Listener {
 		if(TheWalls.inGame(e.getPlayer()))
 			e.getPlayer().setHealth(0);
 		else
-			plugin.removePlayer(e.getPlayer());
+			TheWalls.removePlayer(e.getPlayer());
 		
 		if(TheWalls.noPlay.contains(e.getPlayer())){
 			TheWalls.noPlay.remove(e.getPlayer());
@@ -103,29 +127,22 @@ public class TWListener implements Listener {
 		if(TheWalls.inGame(e.getPlayer()))
 			e.getPlayer().setHealth(0);
 		else
-			plugin.removePlayer(e.getPlayer());
+			TheWalls.removePlayer(e.getPlayer());
 		
 		if(TheWalls.noPlay.contains(e.getPlayer())){
 			TheWalls.noPlay.remove(e.getPlayer());
 		}
-	}
-
-	@EventHandler
-	public void playerRespawn(PlayerRespawnEvent e){
-		e.setRespawnLocation(TheWalls.getWaiting());
-		
-		plugin.addPlayer(e.getPlayer());
 	}
 	
 	@EventHandler
 	public void playerDie(PlayerDeathEvent e){
 		if(TheWalls.inGame(e.getEntity())){
 			plugin.playerDie(e.getEntity());
-			plugin.removePlayer(e.getEntity());
+			TheWalls.removePlayer(e.getEntity());
 		}
 
 		if(TheWalls.getQue().contains(e.getEntity())){
-			plugin.removeFromQue(e.getEntity());
+			TheWalls.removeFromQue(e.getEntity());
 			e.setDeathMessage(null);
 			e.getDrops().clear();
 		}else{
@@ -138,11 +155,10 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void playerInteract(PlayerInteractEvent e){
-		if(TheWalls.noPlay.contains(e.getPlayer())){
+		if(TheWalls.noPlay.contains(e.getPlayer()) && ((e.getAction() == Action.LEFT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.break")) || (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.place")))){
 			e.setCancelled(false);
 			return;
 		}
-		
 		
 		if(!TheWalls.inGame(e.getPlayer())){
 			e.setCancelled(true);
@@ -170,9 +186,11 @@ public class TWListener implements Listener {
 				if(!TheWalls.inGame(hitter))
 					e.setCancelled(true);
 				
-				if(TheWalls.inGame(hitter) && TheWalls.inGame(hit) && plugin.getGame(hitter) == plugin.getGame(hit) && plugin.getGame(hitter).getPerson(hitter).getTeam() == plugin.getGame(hit).getPerson(hit).getTeam() && !plugin.getGame(hitter).inPvP()){
-					e.setCancelled(true);
-					hitter.sendMessage(ChatColor.RED + "You cannot hit your team-mate until the wall has fallen.");
+				if(TheWalls.inGame(hitter) && TheWalls.inGame(hit) && TheWalls.getGame(hitter) == TheWalls.getGame(hit) && TheWalls.getGame(hitter).getPerson(hitter).getTeam() == TheWalls.getGame(hit).getPerson(hit).getTeam() && !TheWalls.getGame(hitter).inPvP()){
+					if(!hitter.hasPermission("thewalls.teamkill")){
+						e.setCancelled(true);
+						hitter.sendMessage(ChatColor.RED + "You cannot hit your team-mate until the wall has fallen.");
+					}
 				}
 			}
 		}
@@ -184,8 +202,20 @@ public class TWListener implements Listener {
 	}
 	
 	@EventHandler
+	public void playerHurt(EntityDamageEvent e){
+		if(e.getEntity() instanceof Player){
+			Player player = (Player) e.getEntity();
+			
+			if(!TheWalls.inGame(player)){
+				e.setDamage(0);
+				e.setCancelled(true);
+			}
+		}
+	}
+	
+	@EventHandler
 	public void blockBreak(BlockBreakEvent e){
-		if(TheWalls.noPlay.contains(e.getPlayer())){
+		if(TheWalls.noPlay.contains(e.getPlayer()) && e.getPlayer().hasPermission("thewalls.noplay.break")){
 			e.setCancelled(false);
 			return;
 		}
@@ -202,7 +232,7 @@ public class TWListener implements Listener {
 		}
 		
 		if(TheWalls.inGame(e.getPlayer())){
-			if(plugin.getGame(e.getPlayer()).inDeathmatch()){
+			if(TheWalls.getGame(e.getPlayer()).inDeathmatch()){
 				e.setCancelled(true);
 				return;
 			}
@@ -215,7 +245,7 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void blockPlace(BlockPlaceEvent e){
-		if(TheWalls.noPlay.contains(e.getPlayer())){
+		if(TheWalls.noPlay.contains(e.getPlayer()) && e.getPlayer().hasPermission("thewalls.noplay.place")){
 			e.setCancelled(false);
 			return;
 		}
@@ -226,7 +256,7 @@ public class TWListener implements Listener {
 		}
 		
 		if(TheWalls.inGame(e.getPlayer())){
-			Game game = plugin.getGame(e.getBlock().getLocation());
+			Game game = TheWalls.getGame(e.getBlock().getLocation());
 			
 			if(!game.inBorder(e.getBlock())){
 				e.setCancelled(true);
@@ -234,7 +264,7 @@ public class TWListener implements Listener {
 				return;
 			}
 			
-			if(plugin.getGame(e.getPlayer()).inDeathmatch()){
+			if(TheWalls.getGame(e.getPlayer()).inDeathmatch()){
 				e.setCancelled(true);
 				return;
 			}
@@ -253,10 +283,6 @@ public class TWListener implements Listener {
 			if(!TheWalls.inGame(player))
 				e.setCancelled(true);
 		}
-	}
-	
-	public void startQueCount(){
-		
 	}
 	
 	@EventHandler
@@ -282,7 +308,7 @@ public class TWListener implements Listener {
 				return;
 			}
 		
-			Game game = plugin.getGame(e.getBlock().getLocation());
+			Game game = TheWalls.getGame(e.getBlock().getLocation());
 	
 			int minX = game.getCenter().getX() - 60;
 			int maxX = game.getCenter().getX() + 60;

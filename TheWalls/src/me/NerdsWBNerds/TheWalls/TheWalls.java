@@ -10,13 +10,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
+import me.NerdsWBNerds.TheWalls.Commands.ChatCMD;
+import me.NerdsWBNerds.TheWalls.Commands.GeneralCMD;
+import me.NerdsWBNerds.TheWalls.Commands.RecordsCMD;
+import me.NerdsWBNerds.TheWalls.Commands.SetupCMD;
+import me.NerdsWBNerds.TheWalls.Commands.TeamCMD;
+import me.NerdsWBNerds.TheWalls.Commands.TeleportCMD;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -24,8 +29,10 @@ public class TheWalls extends JavaPlugin{
 	public Logger log;
 	public Server server;
 
-	private static ArrayList<Player> que = new ArrayList<Player>();
-	static ArrayList<Player> noPlay = new ArrayList<Player>();
+	private static ArrayList<Team> que = new ArrayList<Team>();
+	public static HashMap<Player, Team> invites = new HashMap<Player, Team>();
+	
+	public static ArrayList<Player> noPlay = new ArrayList<Player>();
 	private static ArrayList<Game> games = new ArrayList<Game>();
 
 	private static ArrayList<Record> records = new ArrayList<Record>();
@@ -40,12 +47,13 @@ public class TheWalls extends JavaPlugin{
 	private static Location waiting = null;
 	public static Block backupCenter = null;
 	
-	public QueCount queCount = null;
+	public static QueCount queCount = null;
 	
 	public static int min = 4;
 	public static int max = 12;
-	
-	public static boolean debug = false;
+
+	public static int gameLength = 15;
+	public static int minTillDeathmatch = 10;
 	
 	public void onEnable(){
 		log = getServer().getLogger();
@@ -56,6 +64,30 @@ public class TheWalls extends JavaPlugin{
 		
 		load();
 		shuffle();
+
+		getCommand("tw").setExecutor(new GeneralCMD());
+		getCommand("map").setExecutor(new GeneralCMD());
+		getCommand("info").setExecutor(new GeneralCMD());
+		getCommand("join").setExecutor(new GeneralCMD());
+		getCommand("quit").setExecutor(new GeneralCMD());
+
+		getCommand("spec").setExecutor(new TeleportCMD());
+		getCommand("wait").setExecutor(new TeleportCMD());
+
+		getCommand("setwait").setExecutor(new SetupCMD());
+		getCommand("setback").setExecutor(new SetupCMD());
+		getCommand("add").setExecutor(new SetupCMD());
+		getCommand("alldm").setExecutor(new SetupCMD());
+
+		getCommand("record").setExecutor(new RecordsCMD());
+		getCommand("top").setExecutor(new RecordsCMD());
+
+		getCommand("invite").setExecutor(new TeamCMD());
+		getCommand("accept").setExecutor(new TeamCMD());
+		getCommand("quitteam").setExecutor(new TeamCMD());
+		
+		getCommand("g").setExecutor(new ChatCMD());
+		getCommand("team").setExecutor(new ChatCMD());
 	}
 	
 	public void onDisable(){
@@ -64,297 +96,17 @@ public class TheWalls extends JavaPlugin{
 		save();
 	}
 	
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String args[]){
-		if(sender instanceof Player){
-			Player player = (Player) sender;
-			
-			if(cmd.getName().equalsIgnoreCase("tw") && args.length > 0 && args[0].equalsIgnoreCase("help")){
-				
-				ArrayList<String> messages = new ArrayList<String>();
-				
-				messages.add(ChatColor.GREEN + "You will " + ChatColor.RED + "AUTOMATICALLY" + ChatColor.GREEN + " be put into a game.");
-				messages.add(" ");
-				messages.add(ChatColor.AQUA + "/lobby " + ChatColor.GREEN + " - Get general info about your lobby.");
-				messages.add(ChatColor.AQUA + "/map " + ChatColor.GREEN + " - Get general info about the map.");
-				messages.add(ChatColor.AQUA + "/donate " + ChatColor.GREEN + " - Get info on how to donate.");
-				messages.add(ChatColor.AQUA + "/spec <player> " + ChatColor.GREEN + " - Spectate player.");
-				messages.add(ChatColor.AQUA + "/record <player> " + ChatColor.GREEN + " - Get a players record.");
-				messages.add(ChatColor.AQUA + "/team /g " + ChatColor.GREEN + " - Switch between team and global chat.");
-				
-				player.sendMessage(ChatColor.GOLD + "** THE WALLS HELP **");
-				
-				for(String m: messages){
-					player.sendMessage(m);
-				}
-				
-				return true;
+	public static Team getTeam(Player p){
+		for(Team t: que){
+			if(t.team.contains(p)){
+				return t;
 			}
-			
-			if(cmd.getName().equalsIgnoreCase("map")){
-				String mapLink = "http://tinyurl.com/thewallsmap";
-
-				
-				player.sendMessage(ChatColor.GOLD + "** THE WALLS MAP INFORMATION **");
-				player.sendMessage(ChatColor.GREEN + "This map is a slightly modified version of " + ChatColor.AQUA + "The Walls" + ChatColor.GREEN + " map by " + ChatColor.AQUA + "Rezz.");
-				player.sendMessage(ChatColor.GREEN + "Map: " + ChatColor.AQUA + mapLink);
-				
-				return true;
-			}
-
-			if(cmd.getName().equalsIgnoreCase("spec")){
-				if(args.length != 1)
-					return false;
-				
-				if(!inGame(player)){
-					Player target = getServer().getPlayer(args[0]);
-					
-					if(target == null || !target.isOnline()){
-						player.sendMessage(ChatColor.RED + "Player not found.");
-						return true;
-					}
-					
-					if(inGame(target)){
-						tele(player, target.getLocation());
-						player.sendMessage(ChatColor.GREEN + "Now spectating " + ChatColor.AQUA + target.getName());
-					}else{
-						player.sendMessage(ChatColor.RED + "You can only spectate living players.");
-					}
-				}
-			}
-
-
-			if(cmd.getName().equalsIgnoreCase("info")){
-				if(!inGame(player)){
-					player.sendMessage(ChatColor.GOLD + "** LOBBY INFORMATION **");
-					
-				}else{
-					player.sendMessage(ChatColor.GOLD + "** LOBBY INFORMATION (YOUR LOBBY # IS " + (getGameID(player) + 1)  + ") **");
-				}
-
-				if(queCount != null)
-					player.sendMessage(ChatColor.GREEN + "Waiting Que: " + ChatColor.AQUA + que.size() + " people. " + queCount.time + " second(s).");
-				else
-					player.sendMessage(ChatColor.GREEN + "Waiting Que: " + ChatColor.AQUA + que.size() + " people.");
-				
-				for(int i = 0; i < games.size(); i++){
-					player.sendMessage(ChatColor.GREEN + "Lobby #" + (i + 1) + ": " + ChatColor.AQUA + games.get(i).getPeople().size() + " / " + max + " people. " + games.get(i).getMin() + " min(s) " + games.get(i).getSec() + " sec(s)");
-				}
-				
-				return true;
-			}
-			
-			if(cmd.getName().equalsIgnoreCase("record")){
-				Player target = player;
-				
-				if(args.length == 1){
-					target = null;
-					target = getServer().getPlayer(args[0]);
-				}
-				
-				if(target == null || !target.isOnline()){
-					player.sendMessage(ChatColor.RED + "Error: Player not found.");
-					return true;
-				}
-
-				player.sendMessage(ChatColor.GOLD + "** " + target.getName().toUpperCase() + "'S RECORD **");
-				player.sendMessage(ChatColor.GREEN + "Wins: " + ChatColor.AQUA + getRecord(target, false).getWins());
-				player.sendMessage(ChatColor.GREEN + "Kills: " + ChatColor.AQUA + getRecord(target, false).getKills());
-				player.sendMessage(ChatColor.GREEN + "Deaths: " + ChatColor.AQUA + getRecord(target, false).getDeaths());
-			
-				return true;
-			}
-			
-			if(cmd.getName().equalsIgnoreCase("top")){
-				Record mW = null, mK = null, mD = null;
-				
-				for(Record r: records){
-					if(mW == null)
-						mW = r;
-					
-					if(mK == null)
-						mK = r;
-					
-					if(mD == null)
-						mD = r;
-
-					if(r.getKills() > mK.getKills())
-						mK = r;
-					
-					if(r.getWins() > mW.getWins())
-						mW = r;
-
-					if(r.getDeaths() > mD.getDeaths())
-						mD = r;
-				}
-				
-				player.sendMessage(ChatColor.GOLD + "** LEADERBOARDS **");
-				
-				if(mW != null)
-					player.sendMessage(ChatColor.GREEN + "Most Wins: " + ChatColor.AQUA + mW.getName() + " with " + mW.getWins() + " win(s).");
-				else
-					player.sendMessage(ChatColor.GREEN + "Most Wins: " + ChatColor.AQUA + "None.");
-				
-				if(mK != null)
-					player.sendMessage(ChatColor.GREEN + "Most Kills: " + ChatColor.AQUA + mK.getName() + " with " + mK.getKills() + " kill(s).");
-				else
-					player.sendMessage(ChatColor.GREEN + "Most Kills: " + ChatColor.AQUA + "None.");
-				
-				if(mD != null)
-					player.sendMessage(ChatColor.GREEN + "Most Deaths: " + ChatColor.AQUA + mD.getName() + " with " + mD.getDeaths() + " death(s).");
-				else
-					player.sendMessage(ChatColor.GREEN + "Most Deaths: " + ChatColor.AQUA + "None.");
-				
-				return true;
-			}
-
-			if(cmd.getName().equalsIgnoreCase("g")){
-				if(args.length == 0){
-					removeFromTeamSpeak(player);
-					
-					player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Now in global chat. Use /team to switch to team chat.");
-				}else{
-					ChatColor clr = ChatColor.WHITE;
-					
-					if(player.isOp())
-						clr = ChatColor.RED;
-					
-					String xtra = "";					
-					
-					if(!inGame(player))
-						xtra = TWListener.spec + "[SPEC]";
-					
-					String msg = xtra + ChatColor.GRAY + "<" + clr + player.getName() + ChatColor.GRAY + "> " + ChatColor.WHITE;
-					
-					for(String s: args){
-						msg += s + " ";
-					}
-					
-					sendGlobalChat(player, msg);
-				}
-				
-				return true;
-			}
-			
-			if(cmd.getName().equalsIgnoreCase("team")){
-				if(args.length == 0){
-					if(inGame(player)){
-						addtoTeamSpeak(player);
-						
-						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Now in team chat. Use /g to switch to global chat.");
-					}else{
-						player.sendMessage(ChatColor.RED + "You must be in a game to switch to team chat.");
-					}
-				}else{
-					ChatColor clr = ChatColor.WHITE;
-					
-					if(player.isOp())
-						clr = ChatColor.RED;
-					
-					String msg = TWListener.team + "[TEAM]" + ChatColor.GRAY + "<" + clr + player.getName() + ChatColor.GRAY + "> " + ChatColor.WHITE;
-					
-					for(String s: args){
-						msg += s + " ";
-					}
-					
-					sendTeamChat(player, msg);
-				}
-				
-				return true;
-			}
-			
-			if(cmd.getName().equalsIgnoreCase("donate")){
-				player.sendMessage(ChatColor.GOLD + "** DONATION INFO **");
-				player.sendMessage(ChatColor.GREEN + "Go to " + ChatColor.AQUA + "www.nerdswbnerds.com/donate.php" + ChatColor.GREEN + " to donate! Donating allows me to upgrade the server and get more slots, and less lag.");
-				
-				return true;
-			}
-			
-
-			///////////////////////////////////////////////////////////////////
-			////////////////////////////REQUIRE OP/////////////////////////////
-			///////////////////////////////////////////////////////////////////
-			
-			if(!player.isOp())
-				return false;
-			
-			if(cmd.getName().equalsIgnoreCase("tw")){
-				if(args[0].equalsIgnoreCase("quit")){
-					if(inGame(player)){
-						removePlayer(player);
-					}
-					
-					if(!noPlay.contains(player))
-						noPlay.add(player);
-					
-					player.sendMessage(ChatColor.GREEN + "You have left the waiting que.");
-					return true;
-				}
-				
-				if(args[0].equalsIgnoreCase("join")){
-					if(noPlay.contains(player))
-						noPlay.remove(player);
-					
-					addPlayer(player);
-
-					player.sendMessage(ChatColor.GREEN + "You have joined the waiting que.");
-					return true;
-				}
-			}
-
-			if(cmd.getName().equalsIgnoreCase("alldm")){
-				for(Game g: getGames()){
-					if(g.getPlayers().size() != 0){
-						g.getTimer().time = (60 * -10) + 15;
-					}
-					
-				}
-				
-				player.sendMessage(ChatColor.GREEN + "All worlds forced into deathmatch.");
-				return true;
-			}
-			
-			if(cmd.getName().equalsIgnoreCase("setwait")){
-				setWaiting(player.getLocation());
-				player.sendMessage(ChatColor.GREEN + "Waiting location set at your position.");
-				return true;
-			}
-
-			if(cmd.getName().equalsIgnoreCase("add")){
-				addGame(player);
-				player.sendMessage(ChatColor.GREEN + "Game # " + getGames().size() + " added.");
-				return true;
-			}
-			
-			if(cmd.getName().equalsIgnoreCase("setback")){
-				backupCenter = player.getLocation().add(0, -1, 0).getBlock();
-				player.sendMessage(ChatColor.GREEN + "Back area set at your position.");
-				return true;
-			}
-			
-			/*if(cmd.getName().equalsIgnoreCase("settime")){
-				try{
-					if(getLobby(player.getWorld()) != null){
-						if(getLobby(player.getWorld()).timer.time > 0){
-							getLobby(player.getWorld()).timer.time = Integer.parseInt(args[0]);
-							player.sendMessage(ChatColor.GREEN + "Game time now set to " + args[0] + " second(s).");
-						}
-					}
-				}catch(Exception e){
-					player.sendMessage(ChatColor.RED + "Error tring to change game time.");
-				}
-				return true;
-			}*/
-			
-			return true;
-			
-		}else{
-
 		}
 		
-		return false;
+		return null;
 	}
 	
-	public void sendTeamChat(Player p, String s){
+	public static void sendTeamChat(Player p, String s){
 		if(inGame(p)){
 			Game g = getGame(p);
 			
@@ -369,8 +121,8 @@ public class TheWalls extends JavaPlugin{
 		}
 	}
 	
-	public void sendGlobalChat(Player p, String s){
-		for(Player pp: getServer().getOnlinePlayers()){
+	public static void sendGlobalChat(Player p, String s){
+		for(Player pp: Bukkit.getServer().getOnlinePlayers()){
 			pp.sendMessage(s);
 		}
 
@@ -402,7 +154,7 @@ public class TheWalls extends JavaPlugin{
 		p.teleport(l);
 	}
 	
-	public Record getRecord(Player p, boolean create){
+	public static Record getRecord(Player p, boolean create){
 		for(Record r: records){
 			if(r.getName().equalsIgnoreCase(p.getName())){
 				return r;
@@ -417,11 +169,15 @@ public class TheWalls extends JavaPlugin{
 		return newR;
 	}
 	
+	public static ArrayList<Record> getRecords(){
+		return records;
+	}
+	
 	public void playerDie(Player p){
 		getRecord(p, true).die();
 	}
 	
-	public void playerWin(Player p){
+	public static void playerWin(Player p){
 		getRecord(p, true).winGame();
 	}
 	
@@ -513,7 +269,7 @@ public class TheWalls extends JavaPlugin{
 		ArrayList<String> form = load_worlds();
 		
 		for(String s: form){
-			games.add(toGame(this, s));
+			games.add(toGame(s));
 		}
 
 		form = load_records();
@@ -562,20 +318,18 @@ public class TheWalls extends JavaPlugin{
 		}
 	}
 	
-	public static ArrayList<Player> getQue(){
-		ArrayList<Player> toRem = new ArrayList<Player>();
-		
-		for(Player p: que){
-			if(p.isDead() || p.getHealth() <= 0){
-				toRem.add(p);				
-			}
-		}
-		
-		for(Player p: toRem){
-			que.remove(p);
-		}
-		
+	public static ArrayList<Team> getQue(){
 		return que;
+	}
+	
+	public static int getQueSize(){
+		int size = 0;
+		
+		for(Team t: getQue()){
+			size+=t.team.size();
+		}
+		
+		return size;
 	}
 	
 	public static ArrayList<Game> getGames(){
@@ -590,15 +344,15 @@ public class TheWalls extends JavaPlugin{
 		return waiting;
 	}
 	
-	public void addGame(Player p){
-		Game toAdd = new Game(this);
+	public static void addGame(Player p){
+		Game toAdd = new Game();
 
 		toAdd.setCenter(p.getLocation().add(0, -1, 0).getBlock());
 			
 		games.add(toAdd);
 	}
 	
-	public int getGameID(Game g){
+	public static int getGameID(Game g){
 		for(int i = 0; i < games.size(); i++){
 			if(games.get(i) == g)
 				return i;
@@ -607,7 +361,7 @@ public class TheWalls extends JavaPlugin{
 		return 0;
 	}
 	
-	public int getGameID(Player p){
+	public static int getGameID(Player p){
 		if(inGame(p)){
 			return getGameID(getGame(p));
 		}
@@ -627,7 +381,7 @@ public class TheWalls extends JavaPlugin{
 		return people;
 	}
 	
-	public Game getGame(Player p){
+	public static Game getGame(Player p){
 		for(Game g: games){
 			if(g.getPlayers().contains(p)){
 				return g;
@@ -637,7 +391,7 @@ public class TheWalls extends JavaPlugin{
 		return null;
 	}
 	
-	public Game getGame(Location l){
+	public static Game getGame(Location l){
 		for(Game g: getGames()){
 			if(g.inBorder(l)){
 				return g;
@@ -654,11 +408,11 @@ public class TheWalls extends JavaPlugin{
 		return false;
 	}
 	
-	public void addPlayer(Player p, boolean tp){
+	public static void addPlayer(Player p, boolean tp){
 		if(noPlay.contains(p))
 			return;
 		
-		que.add(p);
+		que.add(new Team(p));
 		
 		if (tp){
 			tele(p, getWaiting());
@@ -667,14 +421,14 @@ public class TheWalls extends JavaPlugin{
 		checkQue();
 	}
 	
-	public void addPlayer(Player p){
+	public static void addPlayer(Player p){
 		if(noPlay.contains(p))
 			return;
 		
 		addPlayer(p, false);
 	}
 	
-	public void removePlayer(Player p){
+	public static void removePlayer(Player p){
 		if(inGame(p)){
 			Game removeFrom = getGame(p);
 			
@@ -683,33 +437,32 @@ public class TheWalls extends JavaPlugin{
 			removeFromTeamSpeak(p);
 		}
 		
-		if(que.contains(p))
-			que.remove(p);
+		for(Team t: getQue()){
+			if(t.team.contains(p))
+				t.removePlayer(p);
+		}
 	}
 	
-	public void removeFromQue(Player p){
-		if(getQue().contains(p))
-			getQue().remove(p);
+	public static void removeFromQue(Player p){
+		if(getTeam(p) != null){
+			Team t = getTeam(p);
+			t.removePlayer(p);
+		}
 	}
 		
-	public boolean checkQue(){
-		for(int i = 0; i < que.size(); i++){
-			if(que.get(i).isDead())
-				que.remove(i);
-		}
-		
+	public static boolean checkQue(){
 		for(Player p: noPlay){
-			if(que.contains(p))
-				que.remove(p);
+			for(Team t: que){
+				if(t.team.contains(p))
+					t.team.remove(p);
+			}
 		}
 				
-		if(que.size() == max){
+		if(getQueSize() == max){
 			Game next = getNextGame();
 			
 			if(next != null){
-				next.startGame();
-				stopQueCount();
-				checkQue();
+				startQueCount(30);
 				return true;
 			}
 		}
@@ -721,21 +474,28 @@ public class TheWalls extends JavaPlugin{
 		return false;
 	}
 	
-	public void startQueCount(){
+	public static void startQueCount(){
 		stopQueCount();
 		
-		queCount = new QueCount(this);
-		queCount.id = getServer().getScheduler().scheduleSyncRepeatingTask(this, queCount, 20L, 20L);
+		queCount = new QueCount();
+		queCount.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), queCount, 20L, 20L);
 	}
 	
-	public void stopQueCount(){
+	public static void startQueCount(int i){
+		stopQueCount();
+		
+		queCount = new QueCount(i);
+		queCount.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), queCount, 20L, 20L);
+	}
+	
+	public static void stopQueCount(){
 		if(queCount != null){
-			getServer().getScheduler().cancelTask(queCount.id);
+			Bukkit.getServer().getScheduler().cancelTask(queCount.id);
 			queCount = null;
 		}
 	}
 	
-	public Game getNextGame(){
+	public static Game getNextGame(){
 		for(int i = 0; i < games.size(); i++){
 			Game game = games.get(i);
 			
@@ -773,8 +533,8 @@ public class TheWalls extends JavaPlugin{
 		return getCenter( new Location(Bukkit.getServer().getWorld(split[0]), Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3])) );
 	}
 	
-	public Game toGame(TheWalls p, String s){
-		Game ret = new Game(p);
+	public Game toGame(String s){
+		Game ret = new Game();
 		ret.setCenter(toLocation(s).getBlock());
 		
 		return ret;
@@ -782,14 +542,14 @@ public class TheWalls extends JavaPlugin{
 
 	public static void hidePlayer(Player p){
 		for(Player pp: Bukkit.getServer().getOnlinePlayers()){
-			if(p!=pp)
+			if(p!=pp && pp.canSee(p))
 				pp.hidePlayer(p);
 		}
 	}
 	
 	public static void showPlayer(Player p){
 		for(Player pp: Bukkit.getServer().getOnlinePlayers()){
-			if(p!=pp)
+			if(p!=pp && !pp.canSee(p))
 				pp.showPlayer(p);
 		}
 	}

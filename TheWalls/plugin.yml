@@ -1,5 +1,5 @@
 name: TheWalls
-version: 1.0
+version: 0.2
 main: me.NerdsWBNerds.TheWalls.TheWalls
 commands:
    tw:
@@ -12,15 +12,20 @@ commands:
       description: Get's general information about all lobbies.
       usage: /<info>
       aliases: [lobby, lobbys]
-   contact:
-      description: Get plugin creater's contact info.
+   quit:
+      description: Quit game and/or leave que.
+      usage: /<command>
+      aliases: [leave]
+   join:
+      description: Join the waiting que.
       usage: /<command>
    spec:
       description: Spectate someone.
       usage: /<command> <name>
-   settime:
-      description: Set amount of time remaining for wall to drop in your wall.
-      usage: /<command> <new_time>
+      aliases: [spectate]
+   wait:
+      description: Teleport to waiting area.
+      usage: /<command>
    setwait:
       description: Set waiting area.
       usage: /<command>
@@ -33,6 +38,7 @@ commands:
    alldm:
       description: Force all worlds into deathmatch.
       usage: /<command>
+      aliases: [forcedm, alldeath, alldeathmatch, dmall]
    record:
       description: Check people's records.
       usage: /<command> [name]
@@ -47,6 +53,13 @@ commands:
       description: Without message, switch to global chat, with message, send single global message.
       usage: /<command> [message]
       aliases: [global]
-   donate:
-      description: Get information on how to donate.
+   invite:
+      description: Request someone to join your team.
+      usage: /<command> <player>
+   accept:
+      description: Join team last invited to.
       usage: /<command>
+   quitteam:
+      description: Leave whatever team you are currently in.
+      usage: /<command>
+      aliases: [leaveteam]

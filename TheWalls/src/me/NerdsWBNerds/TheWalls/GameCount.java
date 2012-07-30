@@ -4,7 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class GameCount implements Runnable{
-	int time = 60 * 10;
+	public int time = 60 * 10;
 	int id = 0;
 	
 	Game game;
@@ -12,6 +12,7 @@ public class GameCount implements Runnable{
 
 	public GameCount(Game l){
 		game = l;
+		time = 60 * TheWalls.gameLength;
 	}
 
 	public GameCount(Game l, int t){
@@ -59,31 +60,31 @@ public class GameCount implements Runnable{
 			game.startPvP();
 		}
 
-		if(time == 60 * -5){
+		if(time == 60 * -(TheWalls.minTillDeathmatch - 5)){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "5" + ChatColor.GREEN + " minutes until deathmatch.");
 		}
-		if(time == 60 * -6){
+		if(time == 60 * -(TheWalls.minTillDeathmatch - 4)){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "4" + ChatColor.GREEN + " minutes until deathmatch.");
 		}
-		if(time == 60 * -7){
+		if(time == 60 * -(TheWalls.minTillDeathmatch - 3)){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "3" + ChatColor.GREEN + " minutes until deathmatch.");
 		}
-		if(time == 60 * -8){
+		if(time == 60 * -(TheWalls.minTillDeathmatch - 2)){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "2" + ChatColor.GREEN + " minutes until deathmatch.");
 		}
-		if(time == 60 * -9){
+		if(time == 60 * -(TheWalls.minTillDeathmatch - 1)){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "1" + ChatColor.GREEN + " minute until deathmatch.");
 		}
-		if(time == 60 * -10 + 15){
+		if(time == 60 * -TheWalls.minTillDeathmatch + 15){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "15" + ChatColor.GREEN + " seconds until deathmatch.");
 		}
-		if(time == 60 * -10){
+		if(time == 60 * -TheWalls.minTillDeathmatch){
 			game.startDeathMatch();
 		}
 
 		if(time <= 60 * -2){
 			for(Player p: game.getPlayers()){
-				if(p.isSneaking()){
+				if(p.isSneaking() && !p.hasPermission("thewalls.nosneakbypass")){
 					p.setSneaking(false);
 					p.sendMessage(ChatColor.RED + "You cannot sneak after wall has been down for 2 minutes.");
 				}
@@ -91,7 +92,7 @@ public class GameCount implements Runnable{
 		}
 		
 		for(Player p: game.getPlayers()){
-			if(p.isDead() || game.plugin.getGame(p.getLocation()) != game){
+			if(p.isDead() || TheWalls.getGame(p.getLocation()) != game){
 				game.removePlayer(p);
 			}
 		}

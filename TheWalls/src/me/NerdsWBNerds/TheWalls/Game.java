@@ -2,6 +2,7 @@ package me.NerdsWBNerds.TheWalls;
 
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -18,12 +19,6 @@ public class Game {
 	
 	private GameCount timer = null;
 	public int sandHeight = 35;
-	
-	public TheWalls plugin;
-	
-	public Game(TheWalls p){
-		plugin = p;
-	}
 	
 	public ArrayList<Person> getPeople(){
 		return people;
@@ -121,7 +116,36 @@ public class Game {
 	}
 	
 	public void addPlayer(Player p){
-		people.add(new Person(p));
+		addPlayer(p, teamWithLeast());
+	}
+	
+	public int teamWithLeast(){
+		int least = 1;
+
+		if(getTeamSize(2) < getTeamSize(least))
+			least = 2;
+		if(getTeamSize(3) < getTeamSize(least))
+			least = 3;
+		if(getTeamSize(4) < getTeamSize(least))
+			least = 4;
+		
+		return least;
+	}
+	
+	public int getTeamSize(int id){
+		int count = 0;
+		
+		for(Person p: getPeople()){
+			if(p.getTeam() == id){
+				count++;
+			}
+		}
+		
+		return count;
+	}
+	
+	public void addPlayer(Player p, int i){
+		people.add(new Person(p).setTeam(i));
 	}
 	
 	public void removePlayer(Player p){
@@ -248,8 +272,8 @@ public class Game {
 	}
 	
 	public void startTimer(){
-		timer = new GameCount(this, 15);
-		timer.id = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, timer, 20L, 20L);
+		timer = new GameCount(this);
+		timer.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), timer, 20L, 20L);
 	}
 	
 	public void startGame(){
@@ -257,23 +281,49 @@ public class Game {
 		restoreMap();
 
 		for(Player p: TheWalls.noPlay){
-			if(TheWalls.getQue().contains(p))
-				TheWalls.getQue().remove(p);
+			if(TheWalls.getTeam(p) != null)
+				TheWalls.removeFromQue(p);
 		}
-		
-		int maxx = Math.min(TheWalls.max, TheWalls.getQue().size());
-		for(int i = 0 ; i < maxx; i++){
-			addPlayer(TheWalls.getQue().get(i));
 
+		ArrayList<Team> toAdd = teamsToAdd();
+		ArrayList<Team> toDel = new ArrayList<Team>();
+		int tN = 0;
+		for(Team t: toAdd){
+			if(t.team.size() > 1){
+				tN++;
+				
+				for(Player p: t.team){
+					addPlayer(p, tN);
+				}
+				
+				toDel.add(t);
+			}
 		}
 		
-		genTeams();
+		for(Team t: toDel){
+			toAdd.remove(t);
+		}
+		
+		for(Team t: toAdd){
+			for(Player p: t.team)
+				addPlayer(p);
+			
+			toDel.add(t);
+		}
+		
+		for(Team t: toDel){
+			toAdd.remove(t);
+			TheWalls.getQue().remove(t);
+		}
+		
+		toAdd.clear();
 		
 		for(Player p: getPlayers()){
-			TheWalls.getQue().remove(p);
-
 			TheWalls.tele(p, getSpawn(p));
 
+			if(TheWalls.invites.containsKey(p))
+				TheWalls.invites.remove(p);
+			
 			p.setHealth(20);
 			p.setFoodLevel(20);
 			p.getInventory().clear();
@@ -287,6 +337,28 @@ public class Game {
 		startTimer();
 	}
 	
+	public ArrayList<Team> teamsToAdd(){
+		ArrayList<Team> toAdd = new ArrayList<Team>();
+		
+		int count = 0, sCount = 0;
+		
+		for(int i = 0; i < TheWalls.getQue().size(); i++){
+			if(count + TheWalls.getQue().get(i).team.size() <= 12){
+				if(sCount < 4 || TheWalls.getQue().get(i).team.size() == 1)
+					count += TheWalls.getQue().get(i).team.size();
+				
+				if(TheWalls.getQue().get(i).team.size() > 1){
+					sCount++;
+				}
+				
+				toAdd.add(TheWalls.getQue().get(i));
+			}else{
+				return toAdd;
+			}
+		}
+		
+		return toAdd;
+	}
 	
 	public void startPvP(){
 		delWall();
@@ -330,25 +402,26 @@ public class Game {
 	}
 	
 	public void endGame(){
-		plugin.getServer().broadcastMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + people.get(0).getPlayer().getName() + ChatColor.GREEN + " has won in lobby # " + ChatColor.AQUA + (plugin.getGameID(this) + 1));
-		plugin.getServer().getScheduler().cancelTask(timer.id);
+		Bukkit.getServer().broadcastMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + people.get(0).getPlayer().getName() + ChatColor.GREEN + " has won in lobby # " + ChatColor.AQUA + (TheWalls.getGameID(this) + 1));
+		Bukkit.getServer().getScheduler().cancelTask(timer.id);
 		
 		timer = null;
 		
 		Player winner = people.get(0).getPlayer();
 		
-		plugin.playerWin(winner);
+		TheWalls.playerWin(winner);
 		TheWalls.removeFromTeamSpeak(winner);
 		
-		plugin.addPlayer(winner);
+		TheWalls.addPlayer(winner);
 		people.clear();
-		
-		TheWalls.tele(winner, TheWalls.getWaiting());
+
+		for(Player p: getWorld().getPlayers())
+			TheWalls.tele(p, TheWalls.getWaiting());
 
 		restoreMap();
 		addWall();
 		
-		plugin.checkQue();
+		TheWalls.checkQue();
 	}
 	
 	public int getMin(){

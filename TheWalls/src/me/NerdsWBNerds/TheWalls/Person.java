@@ -10,8 +10,10 @@ public class Person {
 		setPlayer(p);
 	}
 	
-	public void setTeam(int i){
+	public Person setTeam(int i){
 		team = i;
+		
+		return this;
 	}
 	
 	public void setPlayer(Player p){

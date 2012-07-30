@@ -4,17 +4,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class QueCount implements Runnable{
-	int time = 61;
+	public int time = 61;
 	int id = 0;
 	
-	TheWalls plugin;
-
-	public QueCount(TheWalls l){
-		plugin = l;
-		
-		time = 61;
+	public QueCount(int t){
+		time = t;
 	}
 	
+	public QueCount() {
+	}
+
 	@Override
 	public void run() {
 		if(time == 60){
@@ -31,11 +30,13 @@ public class QueCount implements Runnable{
 		}
 		
 		if(time <= 0){
-			plugin.stopQueCount();
+			TheWalls.stopQueCount();
 			
-			if(TheWalls.getQue().size() >= TheWalls.min && TheWalls.getQue().size() < TheWalls.max){
-				if(plugin.getNextGame() != null)
-					plugin.getNextGame().startGame();
+			if(TheWalls.getQue().size() >= TheWalls.min){
+				if(TheWalls.getNextGame() != null){
+					TheWalls.getNextGame().startGame();
+					TheWalls.checkQue();
+				}
 			}
 		}
 		
@@ -43,8 +44,9 @@ public class QueCount implements Runnable{
 	}
 	
 	public void broadcast(String m){
-		for(Player p: TheWalls.getQue()){
-			p.sendMessage(m);
+		for(Team t: TheWalls.getQue()){
+			for(Player p: t.team)
+				p.sendMessage(m);
 		}
 	}
 }
