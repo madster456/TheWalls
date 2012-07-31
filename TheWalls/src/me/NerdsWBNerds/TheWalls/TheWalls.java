@@ -55,6 +55,8 @@ public class TheWalls extends JavaPlugin{
 	public static int gameLength = 15;
 	public static int minTillDeathmatch = 10;
 	
+	public boolean active = false;
+	
 	public void onEnable(){
 		getCommand("tw").setExecutor(new GeneralCMD());
 		getCommand("map").setExecutor(new GeneralCMD());
@@ -82,11 +84,16 @@ public class TheWalls extends JavaPlugin{
 		
 		log = getServer().getLogger();
 		
-		getServer().getPluginManager().registerEvents(new TWListener(this), this);
+		load();
+
+		if(getWaiting() == null || getGames() == null | getGames().isEmpty() || backupCenter == null){
+			log.info("[ERROR] The Walls could not start, either no games, no waiting area, or no backup area.");
+			return;
+		}
 		
+		getServer().getPluginManager().registerEvents(new TWListener(this), this);
 		getServer().getScheduler().scheduleSyncRepeatingTask(this, new ConstantCheck(this), 20L, 20L);
 		
-		load();
 		shuffle();
 	}
 	
@@ -173,7 +180,7 @@ public class TheWalls extends JavaPlugin{
 		return records;
 	}
 	
-	public void playerDie(Player p){
+	public static void playerDie(Player p){
 		getRecord(p, true).die();
 	}
 	
@@ -437,7 +444,6 @@ public class TheWalls extends JavaPlugin{
 			Game removeFrom = getGame(p);
 			
 			removeFrom.removePlayer(p);
-			
 			removeFromTeamSpeak(p);
 		}
 		

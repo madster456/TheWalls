@@ -9,6 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class GeneralCMD implements CommandExecutor{
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
@@ -97,7 +98,24 @@ public class GeneralCMD implements CommandExecutor{
 				}
 				
 				if(TheWalls.inGame(player)){
-					player.setHealth(0);
+					TheWalls.playerDie(player);
+					
+					if(TheWalls.getGame(player).getPlayers().size() == 2){
+						player.getInventory().clear();
+						player.getInventory().setArmorContents(null);
+					}
+
+					for(ItemStack i: player.getInventory().getContents()){
+						player.getWorld().dropItemNaturally(player.getLocation(), i);
+					}
+					for(ItemStack i: player.getInventory().getArmorContents()){
+						player.getWorld().dropItemNaturally(player.getLocation(), i);
+					}
+					
+					player.getInventory().clear();
+					player.getInventory().setArmorContents(null);
+					
+					TheWalls.removePlayer(player);
 				}
 				
 				TheWalls.removePlayer(player);

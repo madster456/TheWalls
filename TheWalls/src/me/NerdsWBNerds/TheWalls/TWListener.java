@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
+import org.bukkit.inventory.ItemStack;
 
 public class TWListener implements Listener {
 	public TheWalls plugin;
@@ -117,24 +118,48 @@ public class TWListener implements Listener {
 	public void playerQuit(PlayerQuitEvent e){
 		TheWalls.showPlayer(e.getPlayer());
 		
-		if(TheWalls.inGame(e.getPlayer()))
-			e.getPlayer().setHealth(0);
-		else
-			TheWalls.removePlayer(e.getPlayer());
+		if(TheWalls.inGame(e.getPlayer())){
+			TheWalls.playerDie(e.getPlayer());
+			
+			if(TheWalls.getGame(e.getPlayer()).getPlayers().size() == 2){
+				e.getPlayer().getInventory().clear();
+				e.getPlayer().getInventory().setArmorContents(null);
+			}else{
+				for(ItemStack i: e.getPlayer().getInventory().getContents()){
+					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
+				}
+				for(ItemStack i: e.getPlayer().getInventory().getArmorContents()){
+					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
+				}
+			}
+		}
 		
 		if(TheWalls.noPlay.contains(e.getPlayer())){
 			TheWalls.noPlay.remove(e.getPlayer());
 		}
+		
+		TheWalls.removePlayer(e.getPlayer());
 	}
 	
 	@EventHandler
 	public void playerKick(PlayerKickEvent e){
 		TheWalls.showPlayer(e.getPlayer());
 		
-		if(TheWalls.inGame(e.getPlayer()))
-			e.getPlayer().setHealth(0);
-		else
-			TheWalls.removePlayer(e.getPlayer());
+		if(TheWalls.inGame(e.getPlayer())){
+			TheWalls.playerDie(e.getPlayer());
+			
+			if(TheWalls.getGame(e.getPlayer()).getPlayers().size() == 2){
+				e.getPlayer().getInventory().clear();
+				e.getPlayer().getInventory().setArmorContents(null);
+			}else{
+				for(ItemStack i: e.getPlayer().getInventory().getContents()){
+					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
+				}
+				for(ItemStack i: e.getPlayer().getInventory().getArmorContents()){
+					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
+				}
+			}
+		}
 		
 		if(TheWalls.noPlay.contains(e.getPlayer())){
 			TheWalls.noPlay.remove(e.getPlayer());
@@ -144,7 +169,7 @@ public class TWListener implements Listener {
 	@EventHandler
 	public void playerDie(PlayerDeathEvent e){
 		if(TheWalls.inGame(e.getEntity())){
-			plugin.playerDie(e.getEntity());
+			TheWalls.playerDie(e.getEntity());
 			
 			if(TheWalls.getGame(e.getEntity()).getPlayers().size() == 2)
 				e.getDrops().clear();
