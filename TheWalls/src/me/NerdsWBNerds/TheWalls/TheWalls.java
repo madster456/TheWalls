@@ -56,18 +56,9 @@ public class TheWalls extends JavaPlugin{
 	public static int minTillDeathmatch = 10;
 	
 	public void onEnable(){
-		log = getServer().getLogger();
-		
-		getServer().getPluginManager().registerEvents(new TWListener(this), this);
-		
-		getServer().getScheduler().scheduleSyncRepeatingTask(this, new ConstantCheck(this), 20L, 20L);
-		
-		load();
-		shuffle();
-
 		getCommand("tw").setExecutor(new GeneralCMD());
 		getCommand("map").setExecutor(new GeneralCMD());
-		getCommand("info").setExecutor(new GeneralCMD());
+		getCommand("lobby").setExecutor(new GeneralCMD());
 		getCommand("join").setExecutor(new GeneralCMD());
 		getCommand("quit").setExecutor(new GeneralCMD());
 
@@ -88,6 +79,15 @@ public class TheWalls extends JavaPlugin{
 		
 		getCommand("g").setExecutor(new ChatCMD());
 		getCommand("team").setExecutor(new ChatCMD());
+		
+		log = getServer().getLogger();
+		
+		getServer().getPluginManager().registerEvents(new TWListener(this), this);
+		
+		getServer().getScheduler().scheduleSyncRepeatingTask(this, new ConstantCheck(this), 20L, 20L);
+		
+		load();
+		shuffle();
 	}
 	
 	public void onDisable(){
@@ -187,8 +187,12 @@ public class TheWalls extends JavaPlugin{
 	
 	public void shuffle(){
 		for(Player p: getServer().getOnlinePlayers()){
-			if(!p.isDead())
+			if(!p.isDead()){
 				addPlayer(p, true);
+
+				p.getInventory().clear();
+				p.getInventory().setArmorContents(null);
+			}
 		}
 	}
 	
@@ -437,10 +441,7 @@ public class TheWalls extends JavaPlugin{
 			removeFromTeamSpeak(p);
 		}
 		
-		for(Team t: getQue()){
-			if(t.team.contains(p))
-				t.removePlayer(p);
-		}
+		removeFromQue(p);
 	}
 	
 	public static void removeFromQue(Player p){
@@ -458,16 +459,7 @@ public class TheWalls extends JavaPlugin{
 			}
 		}
 				
-		if(getQueSize() == max){
-			Game next = getNextGame();
-			
-			if(next != null){
-				startQueCount(30);
-				return true;
-			}
-		}
-
-		if(queCount == null && que.size() >= min && que.size() < max){
+		if(queCount == null && que.size() >= min){
 			startQueCount();
 		}
 		

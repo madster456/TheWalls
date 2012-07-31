@@ -20,6 +20,11 @@ public class TeamCMD implements CommandExecutor{
 				if(args.length != 1)
 					return false;
 				
+				if(!player.hasPermission("thewalls.invitetoteam")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.invitetoteam");
+					return true;
+				}
+				
 				if(!TheWalls.inGame(player)){
 					Player target = Bukkit.getServer().getPlayer(args[0]);
 					
@@ -33,6 +38,11 @@ public class TeamCMD implements CommandExecutor{
 						return true;
 					}
 					
+					if(TheWalls.noPlay.contains(player)){
+						TheWalls.noPlay.remove(player);
+						TheWalls.addPlayer(player);
+					}
+					
 					if(TheWalls.getTeam(player).invitePlayer(target)){
 						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " invited to team.");
 					}else{
@@ -44,6 +54,11 @@ public class TeamCMD implements CommandExecutor{
 			}
 			
 			if(cmd.getName().equalsIgnoreCase("accept")){
+				if(!player.hasPermission("thewalls.jointeam")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.jointeam");
+					return true;
+				}
+				
 				if(TheWalls.invites.containsKey(player)){
 					Team invite = TheWalls.invites.get(player);
 					
@@ -60,6 +75,11 @@ public class TeamCMD implements CommandExecutor{
 			}
 			
 			if(cmd.getName().equalsIgnoreCase("quitteam")){
+				if(!player.hasPermission("thewalls.quitteam")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.quitteam");
+					return true;
+				}
+				
 				TheWalls.removePlayer(player);
 				TheWalls.addPlayer(player);
 				

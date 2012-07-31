@@ -16,6 +16,11 @@ public class ChatCMD implements CommandExecutor{
 			Player player = (Player) sender;
 
 			if(cmd.getName().equalsIgnoreCase("g")){
+				if(!player.hasPermission("thewalls.chat.global")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.chat.global");
+					return true;
+				}
+				
 				if(args.length == 0){
 					TheWalls.removeFromTeamSpeak(player);
 					
@@ -44,6 +49,11 @@ public class ChatCMD implements CommandExecutor{
 			}
 			
 			if(cmd.getName().equalsIgnoreCase("team")){
+				if(!player.hasPermission("thewalls.chat.team")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.chat.team");
+					return true;
+				}
+				
 				if(args.length == 0){
 					if(TheWalls.inGame(player)){
 						TheWalls.addtoTeamSpeak(player);

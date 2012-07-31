@@ -1,5 +1,5 @@
 name: TheWalls
-version: 0.2
+version: 1.0
 main: me.NerdsWBNerds.TheWalls.TheWalls
 commands:
    tw:
@@ -8,7 +8,7 @@ commands:
    map:
       description: Get map information.
       usage: /<command>
-   info:
+   lobby:
       description: Get's general information about all lobbies.
       usage: /<info>
       aliases: [lobby, lobbys]

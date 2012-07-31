@@ -47,7 +47,7 @@ public class Team {
 	public boolean invitePlayer(Player p){
 		if(team.size() < 3 && !TheWalls.inGame(p)){
 			TheWalls.invites.put(p, this);
-			p.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "You have been invited to " + ChatColor.AQUA + team.get(0).getName() + "'s" + ChatColor.GREEN + "team, type /accept to join.");
+			p.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "You have been invited to " + ChatColor.AQUA + team.get(0).getName() + "'s" + ChatColor.GREEN + " team, type /accept to join.");
 			
 			return true;
 		}

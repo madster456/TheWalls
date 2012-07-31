@@ -20,6 +20,11 @@ public class RecordsCMD implements CommandExecutor{
 			if(cmd.getName().equalsIgnoreCase("record")){
 				Player target = player;
 				
+				if(!player.hasPermission("thewalls.checkrecords")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.checkrecords");
+					return true;
+				}
+				
 				if(args.length == 1){
 					target = null;
 					target = Bukkit.getServer().getPlayer(args[0]);
@@ -39,6 +44,11 @@ public class RecordsCMD implements CommandExecutor{
 			}
 			
 			if(cmd.getName().equalsIgnoreCase("top")){
+				if(!player.hasPermission("thewalls.checktop")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.checktop");
+					return true;
+				}
+				
 				Record mW = null, mK = null, mD = null;
 				
 				for(Record r: TheWalls.getRecords()){

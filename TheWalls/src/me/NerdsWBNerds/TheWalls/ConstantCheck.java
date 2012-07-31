@@ -72,11 +72,20 @@ public class ConstantCheck implements Runnable{
 				}catch(Exception e){}
 				
 			}else if(TheWalls.noPlay.contains(p)){
+				if(TheWalls.getTeam(p) != null){
+					TheWalls.removePlayer(p);
+				}
+				
 				if(TheWalls.getWaiting().getWorld() != p.getWorld())
 					TheWalls.hidePlayer(p);
 				
-				if(p.getGameMode() == GameMode.SURVIVAL)
-					p.setGameMode(GameMode.CREATIVE);
+				if(p.getWorld() == TheWalls.getWaiting().getWorld() && p.hasPermission("thewalls.creativewaiting") || p.getWorld() != TheWalls.getWaiting().getWorld()){
+					if(p.getGameMode() == GameMode.SURVIVAL)
+						p.setGameMode(GameMode.CREATIVE);
+				}else{
+					if(p.getGameMode() == GameMode.CREATIVE)
+						p.setGameMode(GameMode.SURVIVAL);
+				}
 
 				ChatColor clr = ChatColor.WHITE;
 				

@@ -1,6 +1,7 @@
 package me.NerdsWBNerds.TheWalls;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -115,10 +116,6 @@ public class Game {
 		return null;
 	}
 	
-	public void addPlayer(Player p){
-		addPlayer(p, teamWithLeast());
-	}
-	
 	public int teamWithLeast(){
 		int least = 1;
 
@@ -144,8 +141,13 @@ public class Game {
 		return count;
 	}
 	
+	public void addPlayer(Player p){
+		addPlayer(p, teamWithLeast());
+	}
+	
 	public void addPlayer(Player p, int i){
-		people.add(new Person(p).setTeam(i));
+		if(!hasPerson(p))
+			people.add(new Person(p).setTeam(i));
 	}
 	
 	public void removePlayer(Player p){
@@ -201,9 +203,14 @@ public class Game {
 			}
 		}
 		
+		ArrayList<Entity> toDel = new ArrayList<Entity>();
 		for(Entity e: getWorld().getEntities()){
 			if(!(e instanceof Player))
-				e.remove();
+				toDel.add(e);
+		}
+		
+		for(Entity e: toDel){
+			e.remove();
 		}
 
 		addWall();
@@ -291,6 +298,9 @@ public class Game {
 		for(Team t: toAdd){
 			if(t.team.size() > 1){
 				tN++;
+				
+				if(tN == 5)
+					tN = 1;
 				
 				for(Player p: t.team){
 					addPlayer(p, tN);
@@ -413,11 +423,16 @@ public class Game {
 		TheWalls.removeFromTeamSpeak(winner);
 		
 		TheWalls.addPlayer(winner);
-		people.clear();
 
-		for(Player p: getWorld().getPlayers())
+		getPlayers().get(0).getInventory().clear();
+		getPlayers().get(0).getInventory().setArmorContents(null);
+		
+		List<Player> toTele = getWorld().getPlayers();
+		for(Player p: toTele)
 			TheWalls.tele(p, TheWalls.getWaiting());
 
+		people.clear();
+		
 		restoreMap();
 		addWall();
 		

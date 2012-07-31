@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -68,6 +69,12 @@ public class TWListener implements Listener {
 			
 			TheWalls.sendTeamChat(e.getPlayer(), e.getFormat());
 		}else{
+			if(!e.getPlayer().hasPermission("thewalls.chat.global")){
+				e.getPlayer().sendMessage(ChatColor.RED + "Error, requires permission thewalls.chat.global");
+				e.setCancelled(true);
+				return;
+			}
+			
 			e.setCancelled(false);
 			
 			System.out.println(ChatColor.stripColor(e.getFormat()));
@@ -138,6 +145,10 @@ public class TWListener implements Listener {
 	public void playerDie(PlayerDeathEvent e){
 		if(TheWalls.inGame(e.getEntity())){
 			plugin.playerDie(e.getEntity());
+			
+			if(TheWalls.getGame(e.getEntity()).getPlayers().size() == 2)
+				e.getDrops().clear();
+				
 			TheWalls.removePlayer(e.getEntity());
 		}
 
@@ -146,9 +157,20 @@ public class TWListener implements Listener {
 			e.setDeathMessage(null);
 			e.getDrops().clear();
 		}else{
-			if(e.getEntity() != null && e.getEntity().getLastDamageCause() != null && e.getEntity().getLastDamageCause().getCause() != null && e.getEntity().getKiller() != null && e.getEntity().getLastDamageCause().getCause() == DamageCause.ENTITY_ATTACK && e.getEntity().getKiller() instanceof Player){
-				e.setDeathMessage(ChatColor.RED + e.getEntity().getName() + ChatColor.WHITE + " was murdered by " + ChatColor.RED + ((Player) e.getEntity().getKiller()).getName());
-				plugin.playerKill(((Player) e.getEntity().getKiller()));
+			if(e.getEntity() != null && e.getEntity().getLastDamageCause() != null && e.getEntity().getLastDamageCause().getCause() != null && e.getEntity().getKiller() != null){
+				if(e.getEntity().getLastDamageCause().getCause() == DamageCause.ENTITY_ATTACK){
+					if(e.getEntity().getKiller() instanceof Player || (e.getEntity().getKiller() instanceof Arrow && ((Arrow) e.getEntity().getKiller()).getShooter() instanceof Player)){
+						Player killer = null;
+						
+						if(e.getEntity().getKiller() instanceof Player)
+							killer = e.getEntity().getKiller();
+						else
+							killer = (Player) ((Arrow) e.getEntity().getKiller()).getShooter();
+						
+						e.setDeathMessage(ChatColor.DARK_PURPLE + e.getEntity().getName() + ChatColor.GRAY + " was murdered by " + ChatColor.DARK_PURPLE + killer.getName());
+						plugin.playerKill(killer);
+					}
+				}
 			}
 		}
 	}
@@ -180,8 +202,13 @@ public class TWListener implements Listener {
 			if(!TheWalls.inGame(hit))
 				e.setCancelled(true);
 
-			if(e.getDamager() instanceof Player){
-				Player hitter = (Player)e.getDamager();
+			if(e.getDamager() instanceof Player || (e.getDamager() instanceof Arrow && ((Arrow) e.getDamager()).getShooter() instanceof Player)){
+				Player hitter = null;
+				
+				if(e.getDamager() instanceof Player)
+					hitter = (Player)e.getDamager();
+				else
+					hitter = (Player) ((Arrow) e.getDamager()).getShooter();
 				
 				if(!TheWalls.inGame(hitter))
 					e.setCancelled(true);
@@ -189,7 +216,7 @@ public class TWListener implements Listener {
 				if(TheWalls.inGame(hitter) && TheWalls.inGame(hit) && TheWalls.getGame(hitter) == TheWalls.getGame(hit) && TheWalls.getGame(hitter).getPerson(hitter).getTeam() == TheWalls.getGame(hit).getPerson(hit).getTeam() && !TheWalls.getGame(hitter).inPvP()){
 					if(!hitter.hasPermission("thewalls.teamkill")){
 						e.setCancelled(true);
-						hitter.sendMessage(ChatColor.RED + "You cannot hit your team-mate until the wall has fallen.");
+						hitter.sendMessage(ChatColor.RED + "You cannot hurt your team-mate until the wall has fallen.");
 					}
 				}
 			}

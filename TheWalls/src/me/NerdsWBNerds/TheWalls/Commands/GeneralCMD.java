@@ -18,16 +18,21 @@ public class GeneralCMD implements CommandExecutor{
 			// ------------- List commands / general info --------------------------- //
 			
 			if(cmd.getName().equalsIgnoreCase("tw") && args.length > 0 && args[0].equalsIgnoreCase("help")){
+				if(!player.hasPermission("thewalls.gethelp")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.gethelp");
+					return true;
+				}
+				
 				ArrayList<String> messages = new ArrayList<String>();
 				
 				messages.add(ChatColor.GREEN + "You will " + ChatColor.RED + "AUTOMATICALLY" + ChatColor.GREEN + " be put into a game.");
 				messages.add(" ");
 				messages.add(ChatColor.AQUA + "/lobby " + ChatColor.GREEN + " - Get general info about your lobby.");
 				messages.add(ChatColor.AQUA + "/map " + ChatColor.GREEN + " - Get general info about the map.");
-				messages.add(ChatColor.AQUA + "/donate " + ChatColor.GREEN + " - Get info on how to donate.");
+				messages.add(ChatColor.AQUA + "/quit /join " + ChatColor.GREEN + " - Quit and join games/que.");
+				messages.add(ChatColor.AQUA + "/team /g " + ChatColor.GREEN + " - Switch between team and global chat.");
 				messages.add(ChatColor.AQUA + "/spec <player> " + ChatColor.GREEN + " - Spectate player.");
 				messages.add(ChatColor.AQUA + "/record <player> " + ChatColor.GREEN + " - Get a players record.");
-				messages.add(ChatColor.AQUA + "/team /g " + ChatColor.GREEN + " - Switch between team and global chat.");
 				
 				player.sendMessage(ChatColor.GOLD + "** THE WALLS HELP **");
 				
@@ -41,11 +46,16 @@ public class GeneralCMD implements CommandExecutor{
 			// ------------------ List map info and link to download --------------------- //
 			
 			if(cmd.getName().equalsIgnoreCase("map")){
+				if(!player.hasPermission("thewalls.getmapinfo")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.getmapinfo");
+					return true;
+				}
+				
 				String mapLink = "http://tinyurl.com/thewallsmap";
 
 				
 				player.sendMessage(ChatColor.GOLD + "** THE WALLS MAP INFORMATION **");
-				player.sendMessage(ChatColor.GREEN + "This map is a slightly modified version of " + ChatColor.AQUA + "The Walls" + ChatColor.GREEN + " map by " + ChatColor.AQUA + "Rezz.");
+				player.sendMessage(ChatColor.GREEN + "This map is a slightly modified version of " + ChatColor.AQUA + "The Walls" + ChatColor.GREEN + " map by " + ChatColor.AQUA + "Hypixel.");
 				player.sendMessage(ChatColor.GREEN + "Map: " + ChatColor.AQUA + mapLink);
 				
 				return true;
@@ -53,7 +63,12 @@ public class GeneralCMD implements CommandExecutor{
 
 			// ---------------- List all lobby information ---------------------- //
 			
-			if(cmd.getName().equalsIgnoreCase("info")){
+			if(cmd.getName().equalsIgnoreCase("lobby")){
+				if(!player.hasPermission("thewalls.getlobbyinfo")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.getlobbyinfo");
+					return true;
+				}
+				
 				if(!TheWalls.inGame(player)){
 					player.sendMessage(ChatColor.GOLD + "** LOBBY INFORMATION **");
 					
@@ -76,12 +91,16 @@ public class GeneralCMD implements CommandExecutor{
 			// ------------- Quit game and/or que ------------- //
 
 			if(cmd.getName().equalsIgnoreCase("quit")){
+				if(!player.hasPermission("thewalls.quit")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.quit");
+					return true;
+				}
+				
 				if(TheWalls.inGame(player)){
 					player.setHealth(0);
 				}
 				
-				if(TheWalls.getQue().contains(player))
-					TheWalls.getQue().remove(player);
+				TheWalls.removePlayer(player);
 				
 				if(!TheWalls.noPlay.contains(player))
 					TheWalls.noPlay.add(player);
@@ -93,6 +112,11 @@ public class GeneralCMD implements CommandExecutor{
 			// --------- Join que ------------ //
 
 			if(cmd.getName().equalsIgnoreCase("join")){
+				if(!player.hasPermission("thewalls.join")){
+					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.join");
+					return true;
+				}
+				
 				if(TheWalls.noPlay.contains(player))
 					TheWalls.noPlay.remove(player);
 				
