@@ -26,23 +26,16 @@ public class ChatCMD implements CommandExecutor{
 					
 					player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Now in global chat. Use /team to switch to team chat.");
 				}else{
-					ChatColor clr = ChatColor.WHITE;
-					
-					if(player.isOp())
-						clr = ChatColor.RED;
-					
-					String xtra = "";					
-					
-					if(!TheWalls.inGame(player))
-						xtra = TWListener.spec + "[SPEC]";
-					
-					String msg = xtra + ChatColor.GRAY + "<" + clr + player.getName() + ChatColor.GRAY + "> " + ChatColor.WHITE;
+					String msg = "";
 					
 					for(String s: args){
 						msg += s + " ";
 					}
-					
-					TheWalls.sendGlobalChat(player, msg);
+
+					if(msg != ""){
+						TheWalls.tempGlobal.add(player);
+						player.chat(msg);
+					}
 				}
 				
 				return true;

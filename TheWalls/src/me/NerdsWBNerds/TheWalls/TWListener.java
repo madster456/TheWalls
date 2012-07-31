@@ -32,7 +32,6 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.bukkit.inventory.ItemStack;
 
 public class TWListener implements Listener {
 	public TheWalls plugin;
@@ -64,12 +63,15 @@ public class TWListener implements Listener {
 		
 		e.setFormat(pre + ChatColor.GRAY + "<" + clr + e.getPlayer().getName() + ChatColor.GRAY + "> " + ChatColor.WHITE + e.getMessage());
 		
-		if(TheWalls.inTeamSpeak(e.getPlayer())){
+		if(TheWalls.inTeamSpeak(e.getPlayer()) && !TheWalls.tempGlobal.contains(e.getPlayer())){
 			e.setCancelled(true);
 			e.setFormat(team + "[TEAM]" + e.getFormat());
 			
 			TheWalls.sendTeamChat(e.getPlayer(), e.getFormat());
 		}else{
+			if(TheWalls.tempGlobal.contains(e.getPlayer()))
+				TheWalls.tempGlobal.remove(e.getPlayer());
+			
 			if(!e.getPlayer().hasPermission("thewalls.chat.global")){
 				e.getPlayer().sendMessage(ChatColor.RED + "Error, requires permission thewalls.chat.global");
 				e.setCancelled(true);
@@ -119,26 +121,11 @@ public class TWListener implements Listener {
 		TheWalls.showPlayer(e.getPlayer());
 		
 		if(TheWalls.inGame(e.getPlayer())){
-			TheWalls.playerDie(e.getPlayer());
-			
-			if(TheWalls.getGame(e.getPlayer()).getPlayers().size() == 2){
-				e.getPlayer().getInventory().clear();
-				e.getPlayer().getInventory().setArmorContents(null);
-			}else{
-				for(ItemStack i: e.getPlayer().getInventory().getContents()){
-					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
-				}
-				for(ItemStack i: e.getPlayer().getInventory().getArmorContents()){
-					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
-				}
-			}
-		}
-		
-		if(TheWalls.noPlay.contains(e.getPlayer())){
-			TheWalls.noPlay.remove(e.getPlayer());
+			TheWalls.playerLeftGame(e.getPlayer());
 		}
 		
 		TheWalls.removePlayer(e.getPlayer());
+		TheWalls.removeFromNoPlay(e.getPlayer());
 	}
 	
 	@EventHandler
@@ -146,24 +133,11 @@ public class TWListener implements Listener {
 		TheWalls.showPlayer(e.getPlayer());
 		
 		if(TheWalls.inGame(e.getPlayer())){
-			TheWalls.playerDie(e.getPlayer());
-			
-			if(TheWalls.getGame(e.getPlayer()).getPlayers().size() == 2){
-				e.getPlayer().getInventory().clear();
-				e.getPlayer().getInventory().setArmorContents(null);
-			}else{
-				for(ItemStack i: e.getPlayer().getInventory().getContents()){
-					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
-				}
-				for(ItemStack i: e.getPlayer().getInventory().getArmorContents()){
-					e.getPlayer().getWorld().dropItemNaturally(e.getPlayer().getLocation(), i);
-				}
-			}
+			TheWalls.playerLeftGame(e.getPlayer());
 		}
 		
-		if(TheWalls.noPlay.contains(e.getPlayer())){
-			TheWalls.noPlay.remove(e.getPlayer());
-		}
+		TheWalls.removePlayer(e.getPlayer());
+		TheWalls.removeFromNoPlay(e.getPlayer());
 	}
 	
 	@EventHandler
@@ -202,9 +176,16 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void playerInteract(PlayerInteractEvent e){
-		if(TheWalls.noPlay.contains(e.getPlayer()) && ((e.getAction() == Action.LEFT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.break")) || (e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.place")))){
-			e.setCancelled(false);
-			return;
+		if(TheWalls.noPlay.contains(e.getPlayer())){
+			if(e.getAction() == Action.LEFT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.break")){
+				e.setCancelled(false);
+				return;
+			}
+
+			if(e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.place")){
+				e.setCancelled(false);
+				return;
+			}
 		}
 		
 		if(!TheWalls.inGame(e.getPlayer())){

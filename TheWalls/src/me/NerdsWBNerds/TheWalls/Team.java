@@ -21,10 +21,16 @@ public class Team {
 				if(TheWalls.getQue().contains(this))
 					TheWalls.getQue().remove(this);
 				if(TheWalls.invites.containsValue(this)){
+					ArrayList<Player> rem = new ArrayList<Player>();
+					
 					for(Entry<Player, Team> e: TheWalls.invites.entrySet()){
 						if(e.getValue() == this){
-							TheWalls.invites.remove(e.getKey());
+							rem.add(e.getKey());
 						}
+					}
+					
+					for(Player pp: rem){
+						TheWalls.invites.remove(pp);
 					}
 				}
 			}

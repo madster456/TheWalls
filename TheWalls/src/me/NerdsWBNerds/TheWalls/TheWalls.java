@@ -20,9 +20,11 @@ import me.NerdsWBNerds.TheWalls.Commands.TeleportCMD;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TheWalls extends JavaPlugin{
@@ -31,6 +33,8 @@ public class TheWalls extends JavaPlugin{
 
 	private static ArrayList<Team> que = new ArrayList<Team>();
 	public static HashMap<Player, Team> invites = new HashMap<Player, Team>();
+	
+	public static ArrayList<Player> tempGlobal = new ArrayList<Player>();
 	
 	public static ArrayList<Player> noPlay = new ArrayList<Player>();
 	private static ArrayList<Game> games = new ArrayList<Game>();
@@ -129,10 +133,6 @@ public class TheWalls extends JavaPlugin{
 	}
 	
 	public static void sendGlobalChat(Player p, String s){
-		for(Player pp: Bukkit.getServer().getOnlinePlayers()){
-			pp.sendMessage(s);
-		}
-
 		System.out.println(ChatColor.stripColor(s));
 	}
 	
@@ -155,10 +155,20 @@ public class TheWalls extends JavaPlugin{
 	}
 	
 	public static void tele(Player p, Location l){
-		p.setSprinting(false);
-		p.setSneaking(false);
-		
-		p.teleport(l);
+		if(p.isOnline()){
+			p.setSprinting(false);
+			p.setSneaking(false);
+			
+			p.teleport(l);
+		}else{
+			removeFromEverything(p);
+		}
+	}
+	
+	public static void removeFromEverything(Player p){
+		removePlayer(p);
+		removeFromQue(p);
+		removeFromNoPlay(p);
 	}
 	
 	public static Record getRecord(Player p, boolean create){
@@ -419,8 +429,20 @@ public class TheWalls extends JavaPlugin{
 		return false;
 	}
 	
+	public static boolean inQue(Player p){
+		for(Team t: getQue()){
+			for(Player pp: t.team){
+				if(pp == p){
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	public static void addPlayer(Player p, boolean tp){
-		if(noPlay.contains(p))
+		if(noPlay.contains(p) || inGame(p) || inQue(p))
 			return;
 		
 		que.add(new Team(p));
@@ -448,6 +470,30 @@ public class TheWalls extends JavaPlugin{
 		}
 		
 		removeFromQue(p);
+	}
+	
+	public static void playerLeftGame(Player p){
+		TheWalls.playerDie(p);
+		
+		if(TheWalls.getGame(p).getPlayers().size() > 2){
+			for(ItemStack i: p.getInventory().getContents()){
+				if(i != null && i.getType() != Material.AIR)
+					p.getWorld().dropItemNaturally(p.getLocation(), i);
+			}
+			for(ItemStack i: p.getInventory().getArmorContents()){
+				if(i != null && i.getType() != Material.AIR)
+					p.getWorld().dropItemNaturally(p.getLocation(), i);
+			}
+		}
+
+		p.getInventory().clear();
+		p.getInventory().setArmorContents(null);
+	}
+	
+	public static void removeFromNoPlay(Player p){
+		if(noPlay.contains(p)){
+			noPlay.remove(p);
+		}
 	}
 	
 	public static void removeFromQue(Player p){

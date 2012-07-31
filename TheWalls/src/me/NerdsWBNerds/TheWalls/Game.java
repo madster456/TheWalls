@@ -421,15 +421,15 @@ public class Game {
 		
 		TheWalls.playerWin(winner);
 		TheWalls.removeFromTeamSpeak(winner);
-		
-		TheWalls.addPlayer(winner);
 
-		getPlayers().get(0).getInventory().clear();
-		getPlayers().get(0).getInventory().setArmorContents(null);
+		winner.getInventory().clear();
+		winner.getInventory().setArmorContents(null);
 		
 		List<Player> toTele = getWorld().getPlayers();
 		for(Player p: toTele)
 			TheWalls.tele(p, TheWalls.getWaiting());
+		
+		TheWalls.addPlayer(winner);
 
 		people.clear();
 		

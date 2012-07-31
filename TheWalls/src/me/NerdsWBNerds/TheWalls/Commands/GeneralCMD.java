@@ -9,7 +9,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class GeneralCMD implements CommandExecutor{
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
@@ -98,30 +97,11 @@ public class GeneralCMD implements CommandExecutor{
 				}
 				
 				if(TheWalls.inGame(player)){
-					TheWalls.playerDie(player);
-					
-					if(TheWalls.getGame(player).getPlayers().size() == 2){
-						player.getInventory().clear();
-						player.getInventory().setArmorContents(null);
-					}
-
-					for(ItemStack i: player.getInventory().getContents()){
-						player.getWorld().dropItemNaturally(player.getLocation(), i);
-					}
-					for(ItemStack i: player.getInventory().getArmorContents()){
-						player.getWorld().dropItemNaturally(player.getLocation(), i);
-					}
-					
-					player.getInventory().clear();
-					player.getInventory().setArmorContents(null);
-					
-					TheWalls.removePlayer(player);
+					TheWalls.playerLeftGame(player);
 				}
 				
 				TheWalls.removePlayer(player);
-				
-				if(!TheWalls.noPlay.contains(player))
-					TheWalls.noPlay.add(player);
+				TheWalls.noPlay.add(player);
 				
 				player.sendMessage(ChatColor.GREEN + "You have left the waiting que.");
 				return true;
@@ -133,6 +113,13 @@ public class GeneralCMD implements CommandExecutor{
 				if(!player.hasPermission("thewalls.join")){
 					player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.join");
 					return true;
+				}
+				
+				if(TheWalls.inGame(player)){
+					player.sendMessage(ChatColor.RED + "Error: You are already in a game.");
+				}
+				if(TheWalls.inQue(player)){
+					player.sendMessage(ChatColor.RED + "Error: You are already in the waiting.");
 				}
 				
 				if(TheWalls.noPlay.contains(player))
