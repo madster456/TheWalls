@@ -394,12 +394,17 @@ public class CommandHub implements CommandExecutor{
 				return true;
 			}
 			
+			if(!TheWalls.inQue(player)){
+				player.sendMessage(ChatColor.RED + "You must join the game to invite people to team, try /join first.");
+				return true;
+			}
+			
 			if(TheWalls.noPlay.contains(player)){
 				TheWalls.noPlay.remove(player);
 				TheWalls.addPlayer(player);
 			}
 			
-			if(TheWalls.inQue(player) && TheWalls.getTeam(player).invitePlayer(target)){
+			if(TheWalls.getTeam(player).invitePlayer(target)){
 				player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " invited to team.");
 				return true;
 			}else{
