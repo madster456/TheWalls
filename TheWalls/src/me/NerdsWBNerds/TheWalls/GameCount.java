@@ -23,18 +23,9 @@ public class GameCount implements Runnable{
 	@Override
 	public void run() {
 		inProg = true;
-		
-		if(time == 60 * 60){
-			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "60" + ChatColor.GREEN + " minutes remaining.");
-		}
-		if(time == 60 * 45){
-			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "45" + ChatColor.GREEN + " minutes remaining.");
-		}
-		if(time == 60 * 30){
-			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "30" + ChatColor.GREEN + " minutes remaining.");
-		}
-		if(time == 60 * 15){
-			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "15" + ChatColor.GREEN + " minutes remaining.");
+
+		if(time % (60 * 15) == 0){
+			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + (time / (60 * 15)) + ChatColor.GREEN + " minutes remaining.");
 		}
 		if(time == 60 * 10){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "10" + ChatColor.GREEN + " minutes remaining.");
@@ -60,6 +51,9 @@ public class GameCount implements Runnable{
 			game.startPvP();
 		}
 
+		if(time == 60 * -(TheWalls.minTillDeathmatch - 15)){
+			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "15" + ChatColor.GREEN + " minutes until deathmatch.");
+		}
 		if(time == 60 * -(TheWalls.minTillDeathmatch - 5)){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "5" + ChatColor.GREEN + " minutes until deathmatch.");
 		}

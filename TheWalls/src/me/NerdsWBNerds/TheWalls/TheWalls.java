@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import me.NerdsWBNerds.TheWalls.Commands.ChatCMD;
+import me.NerdsWBNerds.TheWalls.Commands.CommandHub;
 import me.NerdsWBNerds.TheWalls.Commands.GeneralCMD;
 import me.NerdsWBNerds.TheWalls.Commands.RecordsCMD;
 import me.NerdsWBNerds.TheWalls.Commands.SetupCMD;
@@ -31,6 +32,16 @@ public class TheWalls extends JavaPlugin{
 	public Logger log;
 	public Server server;
 
+	// --------------- Configurables ------------- //
+
+	public static int gameLength = 15;
+	public static int minTillDeathmatch = 10;
+
+	public static int min = 4;
+	public static int max = 12;
+	
+	// -------------- Non-configurables ------------ //
+	
 	private static ArrayList<Team> que = new ArrayList<Team>();
 	public static HashMap<Player, Team> invites = new HashMap<Player, Team>();
 	
@@ -53,16 +64,13 @@ public class TheWalls extends JavaPlugin{
 	
 	public static QueCount queCount = null;
 	
-	public static int min = 4;
-	public static int max = 12;
-
-	public static int gameLength = 15;
-	public static int minTillDeathmatch = 10;
-	
 	public boolean active = false;
 	
+	public static CommandHub hub = new CommandHub();
+	
 	public void onEnable(){
-		getCommand("tw").setExecutor(new GeneralCMD());
+		getCommand("tw").setExecutor(hub);
+		
 		getCommand("map").setExecutor(new GeneralCMD());
 		getCommand("lobby").setExecutor(new GeneralCMD());
 		getCommand("join").setExecutor(new GeneralCMD());
@@ -293,12 +301,18 @@ public class TheWalls extends JavaPlugin{
 			games.add(toGame(s));
 		}
 
+		if(games == null)
+			games = new ArrayList<Game>();
+			
 		form = load_records();
 		
 		for(String s: form){
 			records.add(Record.getRecord(s));
 		}
 
+		if(records == null)
+			records = new ArrayList<Record>();
+		
 		if(getConfig().contains("WAITING")){
 			waiting = getCenter(toLocation(getConfig().getString("WAITING")));
 		}
@@ -309,32 +323,40 @@ public class TheWalls extends JavaPlugin{
 	
 	@SuppressWarnings("unchecked")
 	public static ArrayList<String> load_worlds(){
-		try{
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Path));
-			Object result = ois.readObject();
-
-			ois.close();
-			if(result != null)
-				return (ArrayList<String>)result;
-			else
+		if(new File(Path).exists()){
+			try{
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Path));
+				Object result = ois.readObject();
+	
+				ois.close();
+				if(result != null)
+					return (ArrayList<String>)result;
+				else
+					return new ArrayList<String>();
+			}catch(Exception e){
 				return new ArrayList<String>();
-		}catch(Exception e){
+			}
+		}else{
 			return new ArrayList<String>();
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static ArrayList<String> load_records(){
-		try{
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PathTwo));
-			Object result = ois.readObject();
-
-			ois.close();
-			if(result != null)
-				return (ArrayList<String>)result;
-			else
+		if(new File(PathTwo).exists()){
+			try{
+				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PathTwo));
+				Object result = ois.readObject();
+	
+				ois.close();
+				if(result != null)
+					return (ArrayList<String>)result;
+				else
+					return new ArrayList<String>();
+			}catch(Exception e){
 				return new ArrayList<String>();
-		}catch(Exception e){
+			}
+		}else{
 			return new ArrayList<String>();
 		}
 	}
@@ -363,6 +385,10 @@ public class TheWalls extends JavaPlugin{
 	
 	public static Location getWaiting(){
 		return waiting;
+	}
+	
+	public static void createWorld(Player p){
+		
 	}
 	
 	public static void addGame(Player p){

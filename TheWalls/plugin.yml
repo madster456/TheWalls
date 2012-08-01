@@ -5,6 +5,7 @@ commands:
    tw:
       description: General TheWalls commands.
       usage: /<command> help
+      aliases: [wall, w]
    map:
       description: Get map information.
       usage: /<command>
