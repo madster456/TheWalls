@@ -15,6 +15,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class CommandHub implements CommandExecutor{
+	public static TheWalls plugin;
+	
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
 		if(sender instanceof Player){
 			Player player = (Player) sender;
@@ -22,6 +24,39 @@ public class CommandHub implements CommandExecutor{
 			// ------------- List commands / general info --------------------------- //
 			
 			if(cmd.getName().equalsIgnoreCase("tw") && args.length > 0){
+				if(args[0].equalsIgnoreCase("config") && args.length >= 3){
+					if(args[1].equalsIgnoreCase("gametime") || args[1].equalsIgnoreCase("gamelength")){
+						TheWalls.gameLength = Integer.parseInt(args[2]);
+						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Game length set to " + ChatColor.AQUA + TheWalls.gameLength + ".");
+						return true;
+					}
+					if(args[1].equalsIgnoreCase("dmtime") || args[1].equalsIgnoreCase("timetodm") || args[1].equalsIgnoreCase("timetilldm")){
+						TheWalls.minTillDeathmatch = Integer.parseInt(args[2]);
+						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Time until deathmatch set to " + ChatColor.AQUA + TheWalls.minTillDeathmatch + ".");
+						return true;
+					}
+					if(args[1].equalsIgnoreCase("setmin") || args[1].equalsIgnoreCase("mintostart") || args[1].equalsIgnoreCase("min")){
+						TheWalls.min = Integer.parseInt(args[2]);
+						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Minimum people to start game set to " + ChatColor.AQUA + TheWalls.min + ".");
+						return true;
+					}
+					if(args[1].equalsIgnoreCase("setmax") || args[1].equalsIgnoreCase("max")){
+						TheWalls.max = Integer.parseInt(args[2]);
+						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Max people in a game set to " + ChatColor.AQUA + TheWalls.max + ".");
+						return true;
+					}
+					if(args[1].equalsIgnoreCase("maxteam") || args[1].equalsIgnoreCase("maxteamsize")){
+						TheWalls.maxTeamSize = Integer.parseInt(args[2]);
+						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Max team size set to " + ChatColor.AQUA + TheWalls.maxTeamSize + ".");
+						return true;
+					}
+					if(args[1].equalsIgnoreCase("reload") || args[1].equalsIgnoreCase("r")){
+						plugin.refresh();
+						player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "Config reloaded.");
+						return true;
+					}
+				}
+				
 				if(args[0].equalsIgnoreCase("help")){
 					return getHelpInfo(player);
 				}

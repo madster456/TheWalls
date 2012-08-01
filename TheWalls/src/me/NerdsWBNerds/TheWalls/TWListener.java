@@ -176,6 +176,13 @@ public class TWListener implements Listener {
 	
 	@EventHandler
 	public void playerInteract(PlayerInteractEvent e){
+		if(!TheWalls.hasGame(e.getPlayer().getWorld()) ||!TheWalls.getGame(e.getPlayer().getWorld()).inProg()){
+			if(e.getPlayer().hasPermission("thewalls.noplace.all")){
+				e.setCancelled(false);
+				return;
+			}
+		}
+		
 		if(TheWalls.noPlay.contains(e.getPlayer())){
 			if(e.getAction() == Action.LEFT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.break")){
 				e.setCancelled(false);
@@ -384,12 +391,6 @@ public class TWListener implements Listener {
 
 	@EventHandler
 	public void onDrop(PlayerDropItemEvent e){
-		if(!TheWalls.inGame(e.getPlayer()))
-			e.setCancelled(true);
-	}
-	
-	@EventHandler
-	public void onInteract(PlayerInteractEvent e){
 		if(!TheWalls.inGame(e.getPlayer()))
 			e.setCancelled(true);
 	}

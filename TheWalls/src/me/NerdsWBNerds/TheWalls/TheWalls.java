@@ -23,6 +23,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +37,8 @@ public class TheWalls extends JavaPlugin{
 
 	public static int gameLength = 15;
 	public static int minTillDeathmatch = 10;
+
+	public static int maxTeamSize = 3;
 
 	public static int min = 4;
 	public static int max = 12;
@@ -93,6 +96,8 @@ public class TheWalls extends JavaPlugin{
 		
 		getCommand("g").setExecutor(new ChatCMD());
 		getCommand("team").setExecutor(new ChatCMD());
+		
+		CommandHub.plugin = this;
 		
 		log = getServer().getLogger();
 		
@@ -228,6 +233,11 @@ public class TheWalls extends JavaPlugin{
 		
 		getConfig().set("WAITING", toString(getWaiting()));
 		getConfig().set("BACKUP", toString(backupCenter.getLocation()));
+		getConfig().set("TIME_TILL_WALL_DROP", gameLength);
+		getConfig().set("TIME_TILL_DEATHMATCH", minTillDeathmatch);
+		getConfig().set("MIN_PEOPLE_TO_START", min);
+		getConfig().set("MAX_PEOPLE_PER_GAME", max);
+		getConfig().set("MAX_TEAM_SIZE", maxTeamSize);
 		
 		saveConfig();
 	}
@@ -313,11 +323,53 @@ public class TheWalls extends JavaPlugin{
 		if(records == null)
 			records = new ArrayList<Record>();
 		
-		if(getConfig().contains("WAITING")){
-			waiting = getCenter(toLocation(getConfig().getString("WAITING")));
+		String name = "WAITING";
+		if(getConfig().contains(name)){
+			waiting = getCenter(toLocation(getConfig().getString(name)));
 		}
-		if(getConfig().contains("BACKUP")){
-			backupCenter = toLocation(getConfig().getString("BACKUP")).getBlock();
+		
+		name = "BACKUP";
+		if(getConfig().contains(name)){
+			backupCenter = toLocation(getConfig().getString(name)).getBlock();
+		}
+		
+		refresh();
+	}
+	
+	public void refresh(){
+		String name = "TIME_TILL_WALL_DROP";
+		if(getConfig().contains(name)){
+			gameLength = getConfig().getInt(name);
+		}else{
+			getConfig().set(name, gameLength);
+		}
+		
+		name = "TIME_TILL_DEATHMATCH";
+		if(getConfig().contains(name)){
+			minTillDeathmatch = getConfig().getInt(name);
+		}else{
+			getConfig().set(name, minTillDeathmatch);
+		}
+		
+		name = "MIN_PEOPLE_TO_START";
+		if(getConfig().contains(name)){
+			min = getConfig().getInt(name);
+		}else{
+			getConfig().set(name, min);
+		}
+		
+		name = "MAX_PEOPLE_PER_GAME";
+		if(getConfig().contains(name)){
+			max = getConfig().getInt(name);
+		}else{
+			getConfig().set(name, max);
+		}
+		
+		name = "MAX_TEAM_SIZE";
+		if(getConfig().contains(name)){
+			maxTeamSize = getConfig().getInt(name);
+		}else{
+			getConfig().set(name, maxTeamSize);
 		}
 	}
 	
@@ -448,6 +500,22 @@ public class TheWalls extends JavaPlugin{
 		return null;
 	}
 	
+	public static Game getGame(World w){
+		for(Game g: getGames()){
+			if(g.getWorld() == w)
+				return g;
+		}
+		
+		return null;
+	}
+	
+	public static boolean hasGame(World w){
+		if(getGame(w) != null)
+			return true;
+		
+		return false;
+	}
+	
 	public static boolean inGame(Player p){
 		if(getActives().contains(p))
 			return true;
@@ -537,7 +605,7 @@ public class TheWalls extends JavaPlugin{
 			}
 		}
 				
-		if(queCount == null && que.size() >= min){
+		if(queCount == null && que.size() >= 4 && getQueSize() >= min){
 			startQueCount();
 		}
 		

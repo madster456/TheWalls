@@ -38,7 +38,7 @@ public class Team {
 	}
 	
 	public void addPlayer(Player p){
-		if(team.size() < 3){
+		if(team.size() < TheWalls.maxTeamSize){
 			for(Player pl: team){
 				pl.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + p.getName() + ChatColor.GREEN + " has joined your team.");
 				if(TheWalls.noPlay.contains(p))
@@ -51,7 +51,7 @@ public class Team {
 	}
 	
 	public boolean invitePlayer(Player p){
-		if(team.size() < 3 && !TheWalls.inGame(p)){
+		if(team.size() < TheWalls.maxTeamSize && !TheWalls.inGame(p)){
 			TheWalls.invites.put(p, this);
 			p.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.GREEN + "You have been invited to " + ChatColor.AQUA + team.get(0).getName() + "'s" + ChatColor.GREEN + " team, type /accept to join.");
 			

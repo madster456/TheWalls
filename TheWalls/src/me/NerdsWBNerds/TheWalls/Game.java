@@ -353,7 +353,7 @@ public class Game {
 		int count = 0, sCount = 0;
 		
 		for(int i = 0; i < TheWalls.getQue().size(); i++){
-			if(count + TheWalls.getQue().get(i).team.size() <= 12){
+			if(count + TheWalls.getQue().get(i).team.size() <= TheWalls.max){
 				if(sCount < 4 || TheWalls.getQue().get(i).team.size() == 1)
 					count += TheWalls.getQue().get(i).team.size();
 				

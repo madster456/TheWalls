@@ -1,5 +1,5 @@
 name: TheWalls
-version: 1.5
+version: 1.6
 main: me.NerdsWBNerds.TheWalls.TheWalls
 commands:
    tw:
