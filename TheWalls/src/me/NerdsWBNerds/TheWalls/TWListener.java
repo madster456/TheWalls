@@ -186,6 +186,13 @@ public class TWListener implements Listener {
 				e.setCancelled(false);
 				return;
 			}
+
+			if(e.getAction() == Action.RIGHT_CLICK_BLOCK && e.getPlayer().hasPermission("thewalls.noplay.openchest")){
+				if(e.getClickedBlock().getType() == Material.CHEST){
+					e.setCancelled(false);
+					return;
+				}
+			}
 		}
 		
 		if(!TheWalls.inGame(e.getPlayer())){
