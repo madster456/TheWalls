@@ -42,6 +42,9 @@ public class TheWalls extends JavaPlugin{
 
 	public static int min = 4;
 	public static int max = 12;
+
+	public static boolean removeOnLeave = true;
+	public static boolean removeOnKick = true;
 	
 	// -------------- Non-configurables ------------ //
 	
@@ -72,6 +75,8 @@ public class TheWalls extends JavaPlugin{
 	public static CommandHub hub = new CommandHub();
 	
 	public void onEnable(){
+		CommandHub.plugin = this;
+		
 		getCommand("tw").setExecutor(hub);
 		
 		getCommand("map").setExecutor(new GeneralCMD());
@@ -93,11 +98,11 @@ public class TheWalls extends JavaPlugin{
 		getCommand("invite").setExecutor(new TeamCMD());
 		getCommand("accept").setExecutor(new TeamCMD());
 		getCommand("quitteam").setExecutor(new TeamCMD());
+		getCommand("queremove").setExecutor(new TeamCMD());
+		getCommand("removeplayer").setExecutor(new TeamCMD());
 		
 		getCommand("g").setExecutor(new ChatCMD());
 		getCommand("team").setExecutor(new ChatCMD());
-		
-		CommandHub.plugin = this;
 		
 		log = getServer().getLogger();
 		
@@ -120,6 +125,10 @@ public class TheWalls extends JavaPlugin{
 		save();
 	}
 	
+	public static void consoleMessage(String m){
+		Bukkit.getConsoleSender().sendMessage(m);
+	}
+	
 	public static Team getTeam(Player p){
 		for(Team t: que){
 			if(t.team.contains(p)){
@@ -139,14 +148,10 @@ public class TheWalls extends JavaPlugin{
 					pp.sendMessage(s);
 			}
 			
-			System.out.println(ChatColor.stripColor(s));
+			consoleMessage(s);
 		}else{
 			p.sendMessage(ChatColor.RED + "You must be in a game to use team speak.");
 		}
-	}
-	
-	public static void sendGlobalChat(Player p, String s){
-		System.out.println(ChatColor.stripColor(s));
 	}
 	
 	public static boolean inTeamSpeak(Player p){
@@ -238,6 +243,8 @@ public class TheWalls extends JavaPlugin{
 		getConfig().set("MIN_PEOPLE_TO_START", min);
 		getConfig().set("MAX_PEOPLE_PER_GAME", max);
 		getConfig().set("MAX_TEAM_SIZE", maxTeamSize);
+		getConfig().set("REMOVE_ON_QUIT", removeOnLeave);
+		getConfig().set("REMOVE_ON_KICK", removeOnKick);
 		
 		saveConfig();
 	}
@@ -305,6 +312,23 @@ public class TheWalls extends JavaPlugin{
 	}
 	
 	public void load(){
+		String name = "WAITING";
+		if(getConfig().contains(name)){
+			waiting = getCenter(toLocation(getConfig().getString(name)));
+		}
+		
+		name = "BACKUP";
+		if(getConfig().contains(name)){
+			String split[] = getConfig().getString(name).split(",");
+			
+			if(Bukkit.getWorld(split[0]) == null){
+				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv import backup normal");
+			}
+			if(Bukkit.getWorld(split[0]) != null){
+				backupCenter = toLocation(getConfig().getString(name)).getBlock();
+			}
+		}
+		
 		ArrayList<String> form = load_worlds();
 		
 		for(String s: form){
@@ -322,16 +346,6 @@ public class TheWalls extends JavaPlugin{
 
 		if(records == null)
 			records = new ArrayList<Record>();
-		
-		String name = "WAITING";
-		if(getConfig().contains(name)){
-			waiting = getCenter(toLocation(getConfig().getString(name)));
-		}
-		
-		name = "BACKUP";
-		if(getConfig().contains(name)){
-			backupCenter = toLocation(getConfig().getString(name)).getBlock();
-		}
 		
 		refresh();
 	}
@@ -370,6 +384,20 @@ public class TheWalls extends JavaPlugin{
 			maxTeamSize = getConfig().getInt(name);
 		}else{
 			getConfig().set(name, maxTeamSize);
+		}
+		
+		name = "REMOVE_ON_QUIT";
+		if(getConfig().contains(name)){
+			removeOnLeave = getConfig().getBoolean(name);
+		}else{
+			getConfig().set(name, removeOnLeave);
+		}
+		
+		name = "REMOVE_ON_KICK";
+		if(getConfig().contains(name)){
+			removeOnKick = getConfig().getBoolean(name);
+		}else{
+			getConfig().set(name, removeOnKick);
 		}
 	}
 	
@@ -438,17 +466,43 @@ public class TheWalls extends JavaPlugin{
 	public static Location getWaiting(){
 		return waiting;
 	}
-	
-	public static void createWorld(Player p){
-		
-	}
-	
-	public static void addGame(Player p){
-		Game toAdd = new Game();
 
-		toAdd.setCenter(p.getLocation().add(0, -1, 0).getBlock());
+	public boolean addGame(){
+		String worldName = "world" + (getGames().size() + 1);
+		
+		File newWorld = new File(getFile().getParent() + "/../" + worldName + "/");
+		
+		if(!newWorld.exists()){
+			return false;
+		}
+
+		File toDel = new File(getFile().getParent() + "/../" + worldName + "/uid.dat");
+		
+		if(toDel.exists()){
+			toDel.delete();
+		}
+		
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv import backup normal");
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv import " + worldName + " normal");
+
+		if(Bukkit.getWorld(worldName) == null){
+			return false;
+		}
+		
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mvm set animals true " + worldName);
+		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mvm set monsters false " + worldName);
+		
+		try{
+			Location l = backupCenter.getLocation();
 			
-		games.add(toAdd);
+			Game toAdd = new Game(getServer().getWorld(worldName).getBlockAt(l.getBlockX(), l.getBlockY(), l.getBlockZ()));
+			
+			games.add(toAdd);
+		}catch(Exception e){
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public static int getGameID(Game g){
@@ -672,8 +726,7 @@ public class TheWalls extends JavaPlugin{
 	}
 	
 	public Game toGame(String s){
-		Game ret = new Game();
-		ret.setCenter(toLocation(s).getBlock());
+		Game ret = new Game(toLocation(s).getBlock());
 		
 		return ret;
 	}

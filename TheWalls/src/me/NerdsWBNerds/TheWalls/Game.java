@@ -11,7 +11,10 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 
 public class Game {
@@ -20,6 +23,12 @@ public class Game {
 	
 	private GameCount timer = null;
 	public int sandHeight = 35;
+	
+	public Game(Block b){
+		center = b;
+		
+		restoreMap();
+	}
 	
 	public ArrayList<Person> getPeople(){
 		return people;
@@ -170,25 +179,74 @@ public class Game {
 		return timer.inProg();
 	}
 	
-	public void restoreMap(){
-		int minY = 50, maxY = 200;
-		int minYY = 50;
-
-		int minX = TheWalls.backupCenter.getX() - 61;
-		int maxX = TheWalls.backupCenter.getX() + 62;
-		int minZ = TheWalls.backupCenter.getZ() - 61;
-		int maxZ = TheWalls.backupCenter.getZ() + 62;
-
-		int minXX = getCenter().getX() - 61;
-		int minZZ = getCenter().getZ() - 61;
+	public int getMinX(){
+		int i = 0;
+		while(true){
+			if(TheWalls.backupCenter.getLocation().add(-i, 0, 0).getBlock().getType() != Material.BEDROCK){
+				i++;
+				break;
+			}
+			i++;
+		}
 		
-		for(int x = 0; x < maxX - minX; x++){
-			for(int y = 0; y < maxY - minY; y++){
-				for(int z = 0; z < maxZ - minZ; z++){
-					Block old = new Location(TheWalls.backupCenter.getWorld(), x + minX, y + minY, z + minZ).getBlock();
-					Block newBlock = getWorld().getBlockAt(x + minXX, y + minYY, z + minZZ);					
+		return TheWalls.backupCenter.getX() - i;
+	}
+	
+	public int getMaxX(){
+		int i = 0;
+		while(true){
+			if(TheWalls.backupCenter.getLocation().add(i, 0, 0).getBlock().getType() != Material.BEDROCK){
+				i++;
+				break;
+			}
+			i++;
+		}
+		
+		return TheWalls.backupCenter.getX() + i;
+	}
+	
+	public int getMinZ(){
+		int i = 0;
+		while(true){
+			if(TheWalls.backupCenter.getLocation().add(0, 0, -i).getBlock().getType() != Material.BEDROCK){
+				i++;
+				break;
+			}
+			i++;
+		}
+		
+		return TheWalls.backupCenter.getZ() - i;
+	}
+	
+	public int getMaxZ(){
+		int i = 0;
+		while(true){
+			if(TheWalls.backupCenter.getLocation().add(0, 0, i).getBlock().getType() != Material.BEDROCK){
+				i++;
+				break;
+			}
+			i++;
+		}
+		
+		return TheWalls.backupCenter.getZ() + i;
+	}
+	
+	public void restoreMap(){
+		int minX = getMinX();
+		int minZ = getMinZ();
+		
+		int maxX = getMaxX();
+		int maxZ = getMaxZ();
+		
+		System.out.println("'" + getWorld().getName() + "' being restored.");
+		
+		for(int x = minX; x < maxX; x++){
+			for(int y = 1; y < 256; y++){
+				for(int z = minZ; z < maxZ; z++){
+					Block old = new Location(TheWalls.backupCenter.getWorld(), x, y, z).getBlock();
+					Block newBlock = getWorld().getBlockAt(x, y, z);					
 					
-					if(old.getType() != newBlock.getType()){
+					if(old.getType() != newBlock.getType() || old.getData() != newBlock.getData()){
 						newBlock.setType(old.getType());
 						newBlock.setData(old.getData());
 					}
@@ -203,15 +261,7 @@ public class Game {
 			}
 		}
 		
-		ArrayList<Entity> toDel = new ArrayList<Entity>();
-		for(Entity e: getWorld().getEntities()){
-			if(!(e instanceof Player))
-				toDel.add(e);
-		}
-		
-		for(Entity e: toDel){
-			e.remove();
-		}
+		System.out.println("'" + getWorld().getName() + "' restoration finished.");
 
 		addWall();
 		
@@ -283,9 +333,22 @@ public class Game {
 		timer.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), timer, 20L, 20L);
 	}
 	
+	public void removeEntities(){
+		ArrayList<Entity> toDel = new ArrayList<Entity>();
+		for(Entity e: getWorld().getEntities()){
+			if(e.getType() == EntityType.DROPPED_ITEM || e instanceof Monster || e instanceof Animals)
+				toDel.add(e);
+		}
+		
+		for(Entity e: toDel){
+			e.remove();
+		}
+	}
+	
 	public void startGame(){
-		people.clear();
 		restoreMap();
+		removeEntities();
+		people.clear();
 
 		for(Player p: TheWalls.noPlay){
 			if(TheWalls.getTeam(p) != null)
@@ -378,7 +441,7 @@ public class Game {
 		if(timer == null)
 			return false;
 		
-		if(timer.time < -10 * 60){
+		if(timer.time < -(TheWalls.minTillDeathmatch) * 60){
 			return true;
 		}
 		

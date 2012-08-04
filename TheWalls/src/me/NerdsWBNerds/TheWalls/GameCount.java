@@ -25,7 +25,7 @@ public class GameCount implements Runnable{
 		inProg = true;
 
 		if(time % (60 * 15) == 0){
-			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + (time / (60 * 15)) + ChatColor.GREEN + " minutes remaining.");
+			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + (time / (60)) + ChatColor.GREEN + " minutes remaining.");
 		}
 		if(time == 60 * 10){
 			broadcast(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + "10" + ChatColor.GREEN + " minutes remaining.");

@@ -134,9 +134,27 @@ public class CommandHub implements CommandExecutor{
 				if(args[0].equalsIgnoreCase("wait") || args[0].equalsIgnoreCase("towait")){
 					return toWait(player);
 				}
+				
+				if(args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("removeplayers")){
+					if(args.length != 2)
+						return false;
+					
+					return removePlayer(player, args[1], false);
+				}
+				
+				if(args[0].equalsIgnoreCase("queremove") || args[0].equalsIgnoreCase("removefromque")){
+					if(args.length != 2)
+						return false;
+
+					return removePlayer(player, args[1], true);
+				}
 			}
 		}else{
-			
+			if(cmd.getName().equalsIgnoreCase("tw") && args.length >= 1){
+				if(args[0].equalsIgnoreCase("add")){
+					return addWorld();
+				}
+			}
 		}
 		
 		return false;
@@ -324,14 +342,54 @@ public class CommandHub implements CommandExecutor{
 		return true;
 	}
 	
-	public boolean addWorld(Player player){
-		if(!player.hasPermission("thewalls.addworld")){
-			player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.addworld");
+	public boolean removePlayer(Player player, String tgt, boolean que){
+		Player target = Bukkit.getPlayer(tgt);
+		
+		if(!player.hasPermission("thewalls.removeplayer")){
+			player.sendMessage(ChatColor.RED + "Error, requires permission thewalls.removeplayer");
+			return false;
+		}
+		
+		if(target == null || !target.isOnline()){
+			player.sendMessage(ChatColor.RED + "Error: Player not found.");
 			return true;
 		}
 		
-		TheWalls.addGame(player);
-		player.sendMessage(ChatColor.GREEN + "Game # " + TheWalls.getGames().size() + " added.");
+		if(TheWalls.inGame(target)){
+			TheWalls.getGame(target).removePlayer(target);
+			player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " removed from game.");
+			return true;
+		}else if(TheWalls.inQue(target)){
+			if(que){
+				TheWalls.removeFromQue(target);
+				player.sendMessage(ChatColor.GOLD + "[TheWalls] " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " removed from que.");
+				return true;
+			}else{
+				player.sendMessage(ChatColor.RED + "Error: Player in que, try /queremove");
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public boolean addWorld(Player player){
+		if(plugin.addGame()){
+			player.sendMessage(ChatColor.GREEN + "Game # " + ChatColor.AQUA + TheWalls.getGames().size() + ChatColor.GREEN + " added.");
+		}else{
+			player.sendMessage(ChatColor.RED + "Error: Could not load world.");
+		}
+		
+		return true;
+	}
+	
+	public boolean addWorld(){
+		if(plugin.addGame()){
+			TheWalls.consoleMessage("Game # " + TheWalls.getGames().size() + " added.");
+		}else{
+			TheWalls.consoleMessage(ChatColor.RED + "Error: Could not load world.");
+		}
+		
 		return true;
 	}
 	

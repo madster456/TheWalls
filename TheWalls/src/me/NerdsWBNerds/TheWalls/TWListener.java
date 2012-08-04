@@ -60,6 +60,10 @@ public class TWListener implements Listener {
 		
 		if(!TheWalls.inGame(e.getPlayer()))
 			pre = spec + "[SPEC]";
+
+		if(!TheWalls.inQue(e.getPlayer()) && !TheWalls.inGame(e.getPlayer())){
+			return;
+		}
 		
 		e.setFormat(pre + ChatColor.GRAY + "<" + clr + e.getPlayer().getName() + ChatColor.GRAY + "> " + ChatColor.WHITE + e.getMessage());
 		
@@ -80,7 +84,7 @@ public class TWListener implements Listener {
 			
 			e.setCancelled(false);
 			
-			System.out.println(ChatColor.stripColor(e.getFormat()));
+			TheWalls.consoleMessage(e.getFormat());
 		}
 	}
 	
@@ -120,24 +124,28 @@ public class TWListener implements Listener {
 	public void playerQuit(PlayerQuitEvent e){
 		TheWalls.showPlayer(e.getPlayer());
 		
-		if(TheWalls.inGame(e.getPlayer())){
-			TheWalls.playerLeftGame(e.getPlayer());
+		if(TheWalls.removeOnLeave || TheWalls.inGame(e.getPlayer()) && TheWalls.getGame(e.getPlayer()).inDeathmatch()){
+			if(TheWalls.inGame(e.getPlayer())){
+				TheWalls.playerLeftGame(e.getPlayer());
+			}
+			
+			TheWalls.removePlayer(e.getPlayer());
+			TheWalls.removeFromNoPlay(e.getPlayer());
 		}
-		
-		TheWalls.removePlayer(e.getPlayer());
-		TheWalls.removeFromNoPlay(e.getPlayer());
 	}
 	
 	@EventHandler
 	public void playerKick(PlayerKickEvent e){
 		TheWalls.showPlayer(e.getPlayer());
-		
-		if(TheWalls.inGame(e.getPlayer())){
-			TheWalls.playerLeftGame(e.getPlayer());
+
+		if(TheWalls.removeOnLeave || TheWalls.inGame(e.getPlayer()) && TheWalls.getGame(e.getPlayer()).inDeathmatch()){
+			if(TheWalls.inGame(e.getPlayer())){
+				TheWalls.playerLeftGame(e.getPlayer());
+			}
+			
+			TheWalls.removePlayer(e.getPlayer());
+			TheWalls.removeFromNoPlay(e.getPlayer());
 		}
-		
-		TheWalls.removePlayer(e.getPlayer());
-		TheWalls.removeFromNoPlay(e.getPlayer());
 	}
 	
 	@EventHandler

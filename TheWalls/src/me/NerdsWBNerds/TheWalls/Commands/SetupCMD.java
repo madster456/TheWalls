@@ -29,7 +29,9 @@ public class SetupCMD implements CommandExecutor{
 				return TheWalls.hub.addWorld(player);
 			}
 		}else{
-			
+			if(cmd.getName().equalsIgnoreCase("add")){
+				return TheWalls.hub.addWorld();
+			}
 		}
 		
 		return false;

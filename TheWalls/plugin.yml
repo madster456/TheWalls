@@ -1,5 +1,5 @@
 name: TheWalls
-version: 1.6
+version: 1.7
 main: me.NerdsWBNerds.TheWalls.TheWalls
 commands:
    tw:
@@ -54,6 +54,14 @@ commands:
       description: Without message, switch to global chat, with message, send single global message.
       usage: /<command> [message]
       aliases: [global]
+   removeplayer:
+      description: Remove a player from his game.
+      usage: /<command> <name>
+      aliases: [remove]
+   queremove:
+      description: Remove a player from his game or the waiting que.
+      usage: /<command> <name>
+      aliases: [removefromque]
    invite:
       description: Request someone to join your team.
       usage: /<command> <player>

@@ -27,6 +27,20 @@ public class TeamCMD implements CommandExecutor{
 			if(cmd.getName().equalsIgnoreCase("quitteam")){
 				return TheWalls.hub.quitTeam(player);
 			}
+			
+			if(cmd.getName().equalsIgnoreCase("remove")){
+				if(args.length != 1)
+					return false;
+				
+				return TheWalls.hub.removePlayer(player, args[0], true);
+			}
+			
+			if(cmd.getName().equalsIgnoreCase("queremove")){
+				if(args.length != 1)
+					return false;
+				
+				return TheWalls.hub.removePlayer(player, args[0], true);
+			}
 		}else{
 			
 		}

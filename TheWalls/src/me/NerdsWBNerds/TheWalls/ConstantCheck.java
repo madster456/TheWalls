@@ -43,9 +43,12 @@ public class ConstantCheck implements Runnable{
 						p.setPlayerListName(newName);
 				}catch(Exception e){}
 			
-			}else if(TheWalls.getTeam(p) != null){
-				if(TheWalls.getWaiting().getWorld() != p.getWorld())
+			}else if(TheWalls.inQue(p)){
+				if(TheWalls.getGame(p.getWorld()) !=null && TheWalls.getGame(p.getWorld()).inProg()){
 					TheWalls.hidePlayer(p);
+				}else{
+					TheWalls.showPlayer(p);
+				}
 				
 				if(p.getWorld() == TheWalls.getWaiting().getWorld() && p.hasPermission("thewalls.creativewaiting") || p.getWorld() != TheWalls.getWaiting().getWorld()){
 					if(p.getGameMode() == GameMode.SURVIVAL)
@@ -76,39 +79,40 @@ public class ConstantCheck implements Runnable{
 					TheWalls.removePlayer(p);
 				}
 				
-				if(TheWalls.getWaiting().getWorld() != p.getWorld())
-					TheWalls.hidePlayer(p);
-				
-				if(p.getWorld() == TheWalls.getWaiting().getWorld() && p.hasPermission("thewalls.creativewaiting") || p.getWorld() != TheWalls.getWaiting().getWorld()){
-					if(p.getGameMode() == GameMode.SURVIVAL)
-						p.setGameMode(GameMode.CREATIVE);
+				if(TheWalls.getGame(p.getWorld()) == null || !TheWalls.getGame(p.getWorld()).inProg()){
+					TheWalls.showPlayer(p);
+					
+					try{
+						if(!p.getPlayerListName().equalsIgnoreCase(p.getDisplayName()))
+							p.setPlayerListName(p.getDisplayName());
+					}catch(Exception e){}
 				}else{
-					if(p.getGameMode() == GameMode.CREATIVE)
-						p.setGameMode(GameMode.SURVIVAL);
+						TheWalls.hidePlayer(p);
+					
+					if(p.getWorld() == TheWalls.getWaiting().getWorld() && p.hasPermission("thewalls.creativewaiting") || p.getWorld() != TheWalls.getWaiting().getWorld()){
+						if(p.getGameMode() == GameMode.SURVIVAL)
+							p.setGameMode(GameMode.CREATIVE);
+					}else{
+						if(p.getGameMode() == GameMode.CREATIVE)
+							p.setGameMode(GameMode.SURVIVAL);
+					}
+	
+					ChatColor clr = ChatColor.WHITE;
+					
+					if(p.isOp())
+						clr = ChatColor.RED;
+					
+					String newName = "(SPEC)" + clr + p.getName();
+					
+					if(newName.length() > 16){
+						newName = newName.substring(0, 16);
+					}
+					
+					try{
+						if(!p.getPlayerListName().equalsIgnoreCase(newName + ChatColor.RESET))
+							p.setPlayerListName(newName);
+					}catch(Exception e){}
 				}
-
-				ChatColor clr = ChatColor.WHITE;
-				
-				if(p.isOp())
-					clr = ChatColor.RED;
-				
-				String newName = "(SPEC)" + clr + p.getName();
-				
-				if(newName.length() > 16){
-					newName = newName.substring(0, 16);
-				}
-				
-				try{
-					if(!p.getPlayerListName().equalsIgnoreCase(newName + ChatColor.RESET))
-						p.setPlayerListName(newName);
-				}catch(Exception e){}
-				
-			}
-			
-			if(p.getWorld() == TheWalls.getWaiting().getWorld()){
-				for(Player pp: TheWalls.getWaiting().getWorld().getPlayers()){
-					p.showPlayer(pp);
-				}	
 			}
 		}
 		
