@@ -60,8 +60,8 @@ public class TheWalls extends JavaPlugin{
 	
 	public static ArrayList<LoginTP> tps = new ArrayList<LoginTP>();
 
-	private static String Path = "plugins/TheWalls" + File.separator + "Worlds.dat";
-	private static String PathTwo = "plugins/TheWalls" + File.separator + "Records.dat";
+	private static String Path = "plugins/TheWalls/Worlds.dat";
+	private static String PathTwo = "plugins/TheWalls/Records.dat";
 	
 	private static HashMap<String, Boolean> teamSpeak = new HashMap<String, Boolean>();
 	
@@ -236,8 +236,10 @@ public class TheWalls extends JavaPlugin{
 
 		save_records();
 		
-		getConfig().set("WAITING", toString(getWaiting()));
-		getConfig().set("BACKUP", toString(backupCenter.getLocation()));
+		if(getWaiting()!=null)
+			getConfig().set("WAITING", toString(getWaiting()));
+		if(backupCenter!=null)
+			getConfig().set("BACKUP", toString(backupCenter.getLocation()));
 		getConfig().set("TIME_TILL_WALL_DROP", gameLength);
 		getConfig().set("TIME_TILL_DEATHMATCH", minTillDeathmatch);
 		getConfig().set("MIN_PEOPLE_TO_START", min);
@@ -261,6 +263,7 @@ public class TheWalls extends JavaPlugin{
 		
 		File file = new File(Path);
 		new File("plugins/").mkdir();
+		new File("plugins/TheWalls/").mkdir();
 	    if(!file.exists()){
 	    	try {
 				file.createNewFile();

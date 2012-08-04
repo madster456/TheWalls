@@ -181,6 +181,7 @@ public class Game {
 	
 	public int getMinX(){
 		int i = 0;
+		
 		while(true){
 			if(TheWalls.backupCenter.getLocation().add(-i, 0, 0).getBlock().getType() != Material.BEDROCK){
 				i++;
