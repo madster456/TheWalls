@@ -1,4 +1,4 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Objects;
 
 import org.bukkit.entity.Player;
 

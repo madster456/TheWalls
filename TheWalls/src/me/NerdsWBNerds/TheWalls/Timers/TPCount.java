@@ -1,14 +1,16 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Timers;
+
+import me.NerdsWBNerds.TheWalls.TheWalls;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-public class LoginTP implements Runnable{
+public class TPCount implements Runnable{
 	int time = 1, id;
 	Player player;
 	Location loc;
 	
-	public LoginTP(Player p, Location l) {
+	public TPCount(Player p, Location l) {
 		player = p;
 		loc = l;
 	}

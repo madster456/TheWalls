@@ -1,7 +1,9 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Objects;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
+
+import me.NerdsWBNerds.TheWalls.TheWalls;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

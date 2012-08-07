@@ -1,7 +1,10 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import me.NerdsWBNerds.TheWalls.TheWalls;
+import me.NerdsWBNerds.TheWalls.Timers.GameTimer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,17 +20,17 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 
-public class Game {
+public class WallsGame {
 	private Block center;
 	private ArrayList<Person> people = new ArrayList<Person>();
 	
-	private GameCount timer = null;
+	private GameTimer timer = null;
 	public int sandHeight = 35;
 	
-	public Game(Block b){
+	public WallsGame(Block b){
 		center = b;
 		
-		restoreMap();
+		//restoreMap();
 	}
 	
 	public ArrayList<Person> getPeople(){
@@ -44,45 +47,12 @@ public class Game {
 		return ret;
 	}
 	
-	public boolean inBorder(Location l){
-		return inBorder(l.getBlock());
-	}
-	
-	public boolean inBorder(Block l){
-		if(l.getWorld() != getWorld())
-			return false;
-		
-		if(l.getX() > getLeftCenter().getX() && l.getX() < getRightCenter().getX()){
-			if(l.getZ() > getFrontCenter().getZ() && l.getZ() < getBackCenter().getZ()){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
 	public void setCenter(Block b){
 		center = b;
 	}
 	
 	public Block getCenter(){
 		return center;
-	}
-	
-	public Block getLeftCenter(){
-		return getCenter().getLocation().add(-61, 0, 0).getBlock();
-	}
-	
-	public Block getRightCenter(){
-		return getCenter().getLocation().add(61, 0, 0).getBlock();
-	}
-	
-	public Block getFrontCenter(){
-		return getCenter().getLocation().add(0, 0, -61).getBlock();
-	}
-	
-	public Block getBackCenter(){
-		return getCenter().getLocation().add(61, 0, 61).getBlock();
 	}
 	
 	public Location getTeamOneSpawn(){
@@ -168,7 +138,7 @@ public class Game {
 		}
 	}
 	
-	public GameCount getTimer(){
+	public GameTimer getTimer(){
 		return timer;
 	}
 	
@@ -256,6 +226,7 @@ public class Game {
 						Chest chest = (Chest) old.getState();
 						
 						Chest newChest = (Chest) newBlock.getState();
+						
 						newChest.getInventory().setContents(chest.getInventory().getContents());
 					}	
 				}
@@ -330,7 +301,7 @@ public class Game {
 	}
 	
 	public void startTimer(){
-		timer = new GameCount(this);
+		timer = new GameTimer(this);
 		timer.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), timer, 20L, 20L);
 	}
 	

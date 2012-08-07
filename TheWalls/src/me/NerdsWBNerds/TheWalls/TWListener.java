@@ -2,6 +2,9 @@ package me.NerdsWBNerds.TheWalls;
 
 import java.util.ArrayList;
 
+import me.NerdsWBNerds.TheWalls.Objects.WallsGame;
+import me.NerdsWBNerds.TheWalls.Timers.TPCount;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -21,7 +24,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -51,40 +54,40 @@ public class TWListener implements Listener {
 	}
 	
 	@EventHandler
-	public void playerChat(PlayerChatEvent e){
-		ChatColor clr = ChatColor.WHITE;
-		String pre = "";
-		
-		if(e.getPlayer().isOp())
-			clr = ChatColor.RED;
-		
-		if(!TheWalls.inGame(e.getPlayer()))
-			pre = spec + "[SPEC]";
-
-		if(!TheWalls.inQue(e.getPlayer()) && !TheWalls.inGame(e.getPlayer())){
-			return;
-		}
-		
-		e.setFormat(pre + ChatColor.GRAY + "<" + clr + e.getPlayer().getName() + ChatColor.GRAY + "> " + ChatColor.WHITE + e.getMessage());
-		
-		if(TheWalls.inTeamSpeak(e.getPlayer()) && !TheWalls.tempGlobal.contains(e.getPlayer())){
-			e.setCancelled(true);
-			e.setFormat(team + "[TEAM]" + e.getFormat());
+	public void playerChat(AsyncPlayerChatEvent e){
+		if(TheWalls.inGame(e.getPlayer()) || TheWalls.inQue(e.getPlayer())){
+			ChatColor clr = ChatColor.WHITE;
+			String pre = "";
 			
-			TheWalls.sendTeamChat(e.getPlayer(), e.getFormat());
-		}else{
-			if(TheWalls.tempGlobal.contains(e.getPlayer()))
-				TheWalls.tempGlobal.remove(e.getPlayer());
+			if(e.getPlayer().isOp())
+				clr = ChatColor.RED;
 			
-			if(!e.getPlayer().hasPermission("thewalls.chat.global")){
-				e.getPlayer().sendMessage(ChatColor.RED + "Error, requires permission thewalls.chat.global");
-				e.setCancelled(true);
-				return;
+			if(TheWalls.inGame(e.getPlayer())){
+				if(TheWalls.inTeamSpeak(e.getPlayer()) && !TheWalls.tempGlobal.contains(e.getPlayer())){
+					e.setCancelled(true);
+					e.setFormat(team + "[TEAM]" + e.getFormat());
+					
+					TheWalls.sendTeamChat(e.getPlayer(), e.getFormat());
+				}else{
+					if(TheWalls.tempGlobal.contains(e.getPlayer()))
+						TheWalls.tempGlobal.remove(e.getPlayer());
+					
+					if(!e.getPlayer().hasPermission("thewalls.chat.global")){
+						e.getPlayer().sendMessage(ChatColor.RED + "Error, requires permission thewalls.chat.global");
+						e.setCancelled(true);
+						return;
+					}
+					
+					e.setCancelled(false);
+					
+					TheWalls.consoleMessage(e.getFormat());
+				}
+				
+			}else if(TheWalls.inQue(e.getPlayer())){
+				pre = spec + "[SPEC]";
 			}
-			
-			e.setCancelled(false);
-			
-			TheWalls.consoleMessage(e.getFormat());
+
+			e.setFormat(pre + ChatColor.GRAY + "<" + clr + e.getPlayer().getName() + ChatColor.GRAY + "> " + ChatColor.WHITE + e.getMessage());
 		}
 	}
 	
@@ -99,7 +102,7 @@ public class TWListener implements Listener {
 			
 			if(!e.getPlayer().isDead() && e.getPlayer().getHealth() > 0 && e.getPlayer().isOnline()){
 				TheWalls.addPlayer(e.getPlayer(), false);
-				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new LoginTP(e.getPlayer(), TheWalls.getWaiting()), 20L);
+				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new TPCount(e.getPlayer(), TheWalls.getWaiting()), 20L);
 			}
 		}else{
 			if(!TheWalls.noPlay.contains(e.getPlayer()))
@@ -311,14 +314,6 @@ public class TWListener implements Listener {
 		}
 		
 		if(TheWalls.inGame(e.getPlayer())){
-			Game game = TheWalls.getGame(e.getBlock().getLocation());
-			
-			if(!game.inBorder(e.getBlock())){
-				e.setCancelled(true);
-				e.getPlayer().sendMessage(ChatColor.RED + "You cannot build here.");
-				return;
-			}
-			
 			if(TheWalls.getGame(e.getPlayer()).inDeathmatch()){
 				e.setCancelled(true);
 				return;
@@ -363,7 +358,7 @@ public class TWListener implements Listener {
 				return;
 			}
 		
-			Game game = TheWalls.getGame(e.getBlock().getLocation());
+			WallsGame game = TheWalls.getGame(e.getBlock().getWorld());
 	
 			int minX = game.getCenter().getX() - 60;
 			int maxX = game.getCenter().getX() + 60;

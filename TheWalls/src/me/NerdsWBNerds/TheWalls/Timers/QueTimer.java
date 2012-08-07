@@ -1,17 +1,20 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Timers;
+
+import me.NerdsWBNerds.TheWalls.TheWalls;
+import me.NerdsWBNerds.TheWalls.Objects.Team;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class QueCount implements Runnable{
+public class QueTimer implements Runnable{
 	public int time = 61;
-	int id = 0;
+	public int id = 0;
 	
-	public QueCount(int t){
+	public QueTimer(int t){
 		time = t;
 	}
 	
-	public QueCount() {
+	public QueTimer() {
 	}
 
 	@Override

@@ -1,14 +1,16 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Timers;
+
+import me.NerdsWBNerds.TheWalls.TheWalls;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
-public class ConstantCheck implements Runnable{
+public class ConstantTimer implements Runnable{
 	TheWalls plugin;
 	
-	public ConstantCheck(TheWalls g){
+	public ConstantTimer(TheWalls g){
 		plugin = g;
 	}
 	

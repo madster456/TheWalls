@@ -2,10 +2,10 @@ package me.NerdsWBNerds.TheWalls.Commands;
 
 import java.util.ArrayList;
 
-import me.NerdsWBNerds.TheWalls.Game;
-import me.NerdsWBNerds.TheWalls.Record;
-import me.NerdsWBNerds.TheWalls.Team;
 import me.NerdsWBNerds.TheWalls.TheWalls;
+import me.NerdsWBNerds.TheWalls.Objects.Record;
+import me.NerdsWBNerds.TheWalls.Objects.Team;
+import me.NerdsWBNerds.TheWalls.Objects.WallsGame;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -421,7 +421,7 @@ public class CommandHub implements CommandExecutor{
 			return true;
 		}
 		
-		for(Game g: TheWalls.getGames()){
+		for(WallsGame g: TheWalls.getGames()){
 			if(g.getPlayers().size() != 0){
 				g.getTimer().time = (60 * -10) + 15;
 			}

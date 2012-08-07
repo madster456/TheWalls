@@ -1,21 +1,24 @@
-package me.NerdsWBNerds.TheWalls;
+package me.NerdsWBNerds.TheWalls.Timers;
+
+import me.NerdsWBNerds.TheWalls.TheWalls;
+import me.NerdsWBNerds.TheWalls.Objects.WallsGame;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class GameCount implements Runnable{
+public class GameTimer implements Runnable{
 	public int time = 60 * 10;
-	int id = 0;
+	public int id = 0;
 	
-	Game game;
+	WallsGame game;
 	public boolean inProg = false;
 
-	public GameCount(Game l){
+	public GameTimer(WallsGame l){
 		game = l;
 		time = 60 * TheWalls.gameLength;
 	}
 
-	public GameCount(Game l, int t){
+	public GameTimer(WallsGame l, int t){
 		game = l;
 		time = t * 60;
 	}
@@ -86,7 +89,7 @@ public class GameCount implements Runnable{
 		}
 		
 		for(Player p: game.getPlayers()){
-			if(p.isDead() || TheWalls.getGame(p.getLocation()) != game){
+			if(p.isDead() || TheWalls.getGame(p.getLocation().getWorld()) != game){
 				game.removePlayer(p);
 			}
 		}

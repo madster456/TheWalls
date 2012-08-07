@@ -17,6 +17,13 @@ import me.NerdsWBNerds.TheWalls.Commands.RecordsCMD;
 import me.NerdsWBNerds.TheWalls.Commands.SetupCMD;
 import me.NerdsWBNerds.TheWalls.Commands.TeamCMD;
 import me.NerdsWBNerds.TheWalls.Commands.TeleportCMD;
+import me.NerdsWBNerds.TheWalls.Objects.Person;
+import me.NerdsWBNerds.TheWalls.Objects.Record;
+import me.NerdsWBNerds.TheWalls.Objects.Team;
+import me.NerdsWBNerds.TheWalls.Objects.WallsGame;
+import me.NerdsWBNerds.TheWalls.Timers.ConstantTimer;
+import me.NerdsWBNerds.TheWalls.Timers.QueTimer;
+import me.NerdsWBNerds.TheWalls.Timers.TPCount;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -54,11 +61,11 @@ public class TheWalls extends JavaPlugin{
 	public static ArrayList<Player> tempGlobal = new ArrayList<Player>();
 	
 	public static ArrayList<Player> noPlay = new ArrayList<Player>();
-	private static ArrayList<Game> games = new ArrayList<Game>();
+	private static ArrayList<WallsGame> games = new ArrayList<WallsGame>();
 
 	private static ArrayList<Record> records = new ArrayList<Record>();
 	
-	public static ArrayList<LoginTP> tps = new ArrayList<LoginTP>();
+	public static ArrayList<TPCount> tps = new ArrayList<TPCount>();
 
 	private static String Path = "plugins/TheWalls/Worlds.dat";
 	private static String PathTwo = "plugins/TheWalls/Records.dat";
@@ -68,7 +75,7 @@ public class TheWalls extends JavaPlugin{
 	private static Location waiting = null;
 	public static Block backupCenter = null;
 	
-	public static QueCount queCount = null;
+	public static QueTimer queCount = null;
 	
 	public boolean active = false;
 	
@@ -114,7 +121,7 @@ public class TheWalls extends JavaPlugin{
 		}
 		
 		getServer().getPluginManager().registerEvents(new TWListener(this), this);
-		getServer().getScheduler().scheduleSyncRepeatingTask(this, new ConstantCheck(this), 20L, 20L);
+		getServer().getScheduler().scheduleSyncRepeatingTask(this, new ConstantTimer(this), 20L, 20L);
 		
 		shuffle();
 	}
@@ -141,7 +148,7 @@ public class TheWalls extends JavaPlugin{
 	
 	public static void sendTeamChat(Player p, String s){
 		if(inGame(p)){
-			Game g = getGame(p);
+			WallsGame g = getGame(p);
 			
 			for(Player pp: g.getPlayers()){
 				if(g.getPerson(pp).getTeam() == g.getPerson(p).getTeam())
@@ -257,7 +264,7 @@ public class TheWalls extends JavaPlugin{
 		
 		ArrayList<String> formatted = new ArrayList<String>();
 		
-		for(Game g: games){
+		for(WallsGame g: games){
 			formatted.add(toString(g.getCenter().getLocation()));
 		}
 		
@@ -339,7 +346,7 @@ public class TheWalls extends JavaPlugin{
 		}
 
 		if(games == null)
-			games = new ArrayList<Game>();
+			games = new ArrayList<WallsGame>();
 			
 		form = load_records();
 		
@@ -458,7 +465,7 @@ public class TheWalls extends JavaPlugin{
 		return size;
 	}
 	
-	public static ArrayList<Game> getGames(){
+	public static ArrayList<WallsGame> getGames(){
 		return games;
 	}
 	
@@ -498,7 +505,7 @@ public class TheWalls extends JavaPlugin{
 		try{
 			Location l = backupCenter.getLocation();
 			
-			Game toAdd = new Game(getServer().getWorld(worldName).getBlockAt(l.getBlockX(), l.getBlockY(), l.getBlockZ()));
+			WallsGame toAdd = new WallsGame(getServer().getWorld(worldName).getBlockAt(l.getBlockX(), l.getBlockY(), l.getBlockZ()));
 			
 			games.add(toAdd);
 		}catch(Exception e){
@@ -508,7 +515,7 @@ public class TheWalls extends JavaPlugin{
 		return true;
 	}
 	
-	public static int getGameID(Game g){
+	public static int getGameID(WallsGame g){
 		for(int i = 0; i < games.size(); i++){
 			if(games.get(i) == g)
 				return i;
@@ -528,7 +535,7 @@ public class TheWalls extends JavaPlugin{
 	public static ArrayList <Player> getActives(){
 		ArrayList<Player> people = new ArrayList<Player>();
 		
-		for(Game g: games){
+		for(WallsGame g: games){
 			for(Person p: g.getPeople()){
 				people.add(p.getPlayer());
 			}
@@ -537,8 +544,8 @@ public class TheWalls extends JavaPlugin{
 		return people;
 	}
 	
-	public static Game getGame(Player p){
-		for(Game g: games){
+	public static WallsGame getGame(Player p){
+		for(WallsGame g: games){
 			if(g.getPlayers().contains(p)){
 				return g;
 			}
@@ -547,18 +554,8 @@ public class TheWalls extends JavaPlugin{
 		return null;
 	}
 	
-	public static Game getGame(Location l){
-		for(Game g: getGames()){
-			if(g.inBorder(l)){
-				return g;
-			}
-		}
-		
-		return null;
-	}
-	
-	public static Game getGame(World w){
-		for(Game g: getGames()){
+	public static WallsGame getGame(World w){
+		for(WallsGame g: getGames()){
 			if(g.getWorld() == w)
 				return g;
 		}
@@ -614,7 +611,7 @@ public class TheWalls extends JavaPlugin{
 	
 	public static void removePlayer(Player p){
 		if(inGame(p)){
-			Game removeFrom = getGame(p);
+			WallsGame removeFrom = getGame(p);
 			
 			removeFrom.removePlayer(p);
 			removeFromTeamSpeak(p);
@@ -672,14 +669,14 @@ public class TheWalls extends JavaPlugin{
 	public static void startQueCount(){
 		stopQueCount();
 		
-		queCount = new QueCount();
+		queCount = new QueTimer();
 		queCount.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), queCount, 20L, 20L);
 	}
 	
 	public static void startQueCount(int i){
 		stopQueCount();
 		
-		queCount = new QueCount(i);
+		queCount = new QueTimer(i);
 		queCount.id = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(new TheWalls(), queCount, 20L, 20L);
 	}
 	
@@ -690,9 +687,9 @@ public class TheWalls extends JavaPlugin{
 		}
 	}
 	
-	public static Game getNextGame(){
+	public static WallsGame getNextGame(){
 		for(int i = 0; i < games.size(); i++){
-			Game game = games.get(i);
+			WallsGame game = games.get(i);
 			
 			if(!game.inProg() && game.getPeople().isEmpty()){
 				return game;
@@ -728,8 +725,8 @@ public class TheWalls extends JavaPlugin{
 		return getCenter( new Location(Bukkit.getServer().getWorld(split[0]), Integer.parseInt(split[1]), Integer.parseInt(split[2]), Integer.parseInt(split[3])) );
 	}
 	
-	public Game toGame(String s){
-		Game ret = new Game(toLocation(s).getBlock());
+	public WallsGame toGame(String s){
+		WallsGame ret = new WallsGame(toLocation(s).getBlock());
 		
 		return ret;
 	}
