@@ -18,7 +18,8 @@ public class TPCount implements Runnable{
 	@Override
 	public void run(){
 		if(!TheWalls.inGame(player)){
-			if(player != null && player.isOnline() && !player.isDead() && player.getHealth() > 0 && loc != null){
+			Damageable damag = player;
+			if(player != null && player.isOnline() && !player.isDead() && damag.getHealth() > 0 && loc != null){
 				try{
 					TheWalls.tele(player, loc);
 				}catch(Exception e){};
