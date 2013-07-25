@@ -3,6 +3,7 @@ package me.NerdsWBNerds.TheWalls.Timers;
 import me.NerdsWBNerds.TheWalls.TheWalls;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 
 public class TPCount implements Runnable{
@@ -18,8 +19,9 @@ public class TPCount implements Runnable{
 	@Override
 	public void run(){
 		if(!TheWalls.inGame(player)){
-			Damageable damag = player;
-			if(player != null && player.isOnline() && !player.isDead() && damag.getHealth() > 0 && loc != null){
+			Damageable damageable = player;
+
+			if(player != null && player.isOnline() && !player.isDead() && damageable.getHealth() > 0 && loc != null){
 				try{
 					TheWalls.tele(player, loc);
 				}catch(Exception e){};
