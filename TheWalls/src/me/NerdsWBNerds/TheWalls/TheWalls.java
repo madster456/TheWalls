@@ -82,6 +82,11 @@ public class TheWalls extends JavaPlugin{
 	public static CommandHub hub = new CommandHub();
 	
 	public void onEnable(){
+		try {
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) {}
+
 		CommandHub.plugin = this;
 		
 		getCommand("tw").setExecutor(hub);
